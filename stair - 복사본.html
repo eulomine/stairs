@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>무한의 계단 - 믿음의 여정</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #1a0533; font-family: 'Segoe UI', sans-serif; overflow: hidden; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
+        #titleScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(180deg, #0a0520 0%, #1a0a3e 40%, #2d1b69 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9000; }
+        #titleScreen.hidden { display: none; }
+        .title-cross { font-size: 50px; animation: glow 2s ease-in-out infinite; }
+        @keyframes glow { 0%,100% { filter: drop-shadow(0 0 8px rgba(255,215,0,0.4)); } 50% { filter: drop-shadow(0 0 20px rgba(255,215,0,0.9)); } }
+        .title-main { font-size: 28px; font-weight: 900; color: #FFD700; text-shadow: 0 0 15px rgba(255,215,0,0.4), 2px 2px 4px rgba(0,0,0,0.8); letter-spacing: 2px; margin: 5px 0; }
+        .title-sub { font-size: 14px; color: #c4a6ff; font-style: italic; margin-bottom: 25px; }
+        .mode-select { display: flex; gap: 10px; margin-bottom: 18px; flex-wrap: wrap; justify-content: center; }
+        .mode-btn { padding: 10px 14px; border: 2px solid #FFD700; border-radius: 12px; background: rgba(255,215,0,0.08); color: #FFD700; font-size: 13px; font-weight: 700; cursor: pointer; min-width: 120px; text-align: center; }
+        .mode-btn:hover, .mode-btn.selected { background: rgba(255,215,0,0.25); box-shadow: 0 0 12px rgba(255,215,0,0.3); }
+        .mode-btn .mode-icon { font-size: 22px; display: block; margin-bottom: 3px; }
+        .mode-btn .mode-label { font-size: 10px; color: #c4a6ff; font-weight: 400; display: block; }
+        .char-section-title { color: #c4a6ff; font-size: 12px; margin-bottom: 8px; }
+        .char-select { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; justify-content: center; }
+        .char-btn { width: 70px; height: 90px; border: 2px solid #7b5ea7; border-radius: 10px; background: rgba(123,94,167,0.15); cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #fff; font-size: 10px; }
+        .char-btn:hover, .char-btn.selected { border-color: #FFD700; background: rgba(255,215,0,0.12); }
+        .char-btn .char-preview { width: 40px; height: 52px; image-rendering: pixelated; background-size: contain; background-repeat: no-repeat; background-position: center bottom; margin-bottom: 3px; }
+        .start-btn { padding: 14px 45px; border: none; border-radius: 25px; background: linear-gradient(135deg, #FFD700, #FFA500); color: #1a0533; font-size: 18px; font-weight: 900; cursor: pointer; letter-spacing: 2px; box-shadow: 0 4px 15px rgba(255,215,0,0.4); }
+        .start-btn:active { transform: scale(0.95); }
+        .rank-btn-title { margin-top: 10px; padding: 8px 25px; border: 2px solid #c4a6ff; border-radius: 20px; background: transparent; color: #c4a6ff; font-size: 13px; cursor: pointer; }
+
+        #game-view { width: 100vw; height: 100vh; position: relative; overflow: hidden; display: none; }
+        #game-view.active { display: block; }
+        #bg-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; transition: background 1.5s ease; }
+        .bg-star { position: absolute; background: #fff; border-radius: 50%; animation: twinkle 2s ease-in-out infinite; }
+        @keyframes twinkle { 0%,100% { opacity: 0.3; } 50% { opacity: 1; } }
+        #world { position: absolute; width: 100%; height: 100%; bottom: 0; left: 0; z-index: 1; transition: transform 0.12s ease-out; }
+        .step { position: absolute; width: 80px; height: 28px; border-radius: 3px; image-rendering: pixelated; }
+        .step-normal { background: linear-gradient(180deg, #c49a2a, #8B6914, #6B4F10); border: 2px solid #5a4210; box-shadow: 0 4px 0 #3d2d0a; }
+        .step-ice { background: linear-gradient(180deg, #8ad8f8, #5BC0EB, #3A9BC7); border: 2px solid #2a7fa5; box-shadow: 0 4px 0 #1d5a78; }
+        .step-fire { background: linear-gradient(180deg, #ff8c42, #D4440F, #A03000); border: 2px solid #7a2000; box-shadow: 0 4px 0 #4a1500; }
+        .step-dark { background: linear-gradient(180deg, #555, #3a3a3a, #222); border: 2px solid #111; box-shadow: 0 4px 0 #000; }
+        .step-gold { background: linear-gradient(180deg, #fff1a8, #FFD700, #DAA520); border: 2px solid #b8860b; box-shadow: 0 4px 0 #8B6914, 0 0 15px rgba(255,215,0,0.4); }
+        .step-label { position: absolute; top: -16px; left: 50%; transform: translateX(-50%); font-size: 9px; color: rgba(255,255,255,0.6); font-weight: 700; white-space: nowrap; }
+
+        #player { position: absolute; width: 120px; height: 150px; background-size: contain; background-repeat: no-repeat; background-position: center bottom; z-index: 100; image-rendering: pixelated; left: 50%; transform: translateX(-50%); pointer-events: none; }
+
+        #hud { position: absolute; top: 0; left: 0; width: 100%; padding: 8px 12px; z-index: 200; pointer-events: none; }
+        .hud-row { display: flex; justify-content: space-between; align-items: center; }
+        .hud-item { background: rgba(0,0,0,0.6); border-radius: 8px; padding: 4px 12px; color: #fff; font-size: 13px; font-weight: 700; }
+        .hud-floor { color: #FFD700; font-size: 18px; }
+        #progressBar { position: absolute; top: 44px; left: 12px; right: 12px; height: 5px; background: rgba(255,255,255,0.12); border-radius: 3px; z-index: 200; display: none; }
+        #progressFill { height: 100%; width: 0%; border-radius: 3px; background: linear-gradient(90deg, #7b5ea7, #FFD700); transition: width 0.3s; }
+        #progressLabel { position: absolute; top: 51px; left: 50%; transform: translateX(-50%); color: rgba(255,255,255,0.7); font-size: 10px; z-index: 201; display: none; text-shadow: 0 1px 3px rgba(0,0,0,0.8); pointer-events: none; }
+
+        #buttons { position: absolute; bottom: 0; left: 0; right: 0; display: flex; z-index: 200; height: 130px; }
+        .btn { flex: 1; height: 100%; background: rgba(255,255,255,0.92); border: none; border-top: 3px solid #888; font-size: 20px; font-weight: 800; color: #333; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; -webkit-tap-highlight-color: transparent; }
+        .btn:first-child { border-right: 2px solid #ccc; }
+        .btn:active { background: rgba(255,215,0,0.6); }
+        .btn-icon { font-size: 28px; }
+
+        .story-popup { position: fixed; top: 35%; left: 50%; transform: translate(-50%, -50%); color: #FFD700; font-size: 18px; font-weight: 900; text-shadow: 0 0 15px rgba(255,215,0,0.5), 0 2px 4px rgba(0,0,0,0.8); text-align: center; z-index: 500; pointer-events: none; animation: storyAnim 3s ease-in-out forwards; max-width: 85%; line-height: 1.6; }
+        .story-popup .story-verse { font-size: 12px; color: #c4a6ff; font-weight: 400; font-style: italic; display: block; margin-top: 5px; }
+        @keyframes storyAnim { 0%{opacity:0;transform:translate(-50%,-40%)}15%{opacity:1;transform:translate(-50%,-50%)}80%{opacity:1;transform:translate(-50%,-50%)}100%{opacity:0;transform:translate(-50%,-60%)} }
+
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); flex-direction: column; align-items: center; justify-content: center; z-index: 8000; backdrop-filter: blur(6px); display: none; }
+        .overlay.active { display: flex; }
+        .ov-title { font-size: 26px; color: #FFD700; font-weight: 900; margin-bottom: 5px; }
+        .ov-verse { font-size: 12px; color: #c4a6ff; font-style: italic; max-width: 280px; text-align: center; margin-bottom: 18px; line-height: 1.5; }
+        .ov-stat { color: #fff; font-size: 16px; margin-bottom: 5px; font-weight: 600; }
+        .ov-input { padding: 10px 20px; border: 2px solid #FFD700; border-radius: 10px; background: rgba(255,255,255,0.08); color: #fff; font-size: 15px; text-align: center; margin: 12px 0; width: 200px; outline: none; }
+        .ov-input::placeholder { color: rgba(255,255,255,0.35); }
+        .ov-btns { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+        .ov-btn { padding: 11px 22px; border: none; border-radius: 20px; font-size: 13px; font-weight: 700; cursor: pointer; }
+        .ov-btn-primary { background: linear-gradient(135deg, #FFD700, #FFA500); color: #1a0533; }
+        .ov-btn-secondary { background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.3); }
+        .ov-btn-restart { background: rgba(100,200,100,0.3); color: #7fff7f; border: 1px solid rgba(100,200,100,0.5); }
+        .ov-btn:active { transform: scale(0.95); }
+
+        #rankScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(10,5,30,0.97); flex-direction: column; align-items: center; z-index: 9500; overflow-y: auto; padding: 20px; display: none; }
+        #rankScreen.active { display: flex; }
+        .rank-title { font-size: 22px; color: #FFD700; font-weight: 900; margin: 10px 0 12px; }
+        .rank-tabs { display: flex; gap: 8px; margin-bottom: 12px; }
+        .rank-tab { padding: 7px 14px; border: 1px solid #7b5ea7; border-radius: 15px; background: transparent; color: #c4a6ff; font-size: 12px; cursor: pointer; }
+        .rank-tab.active { background: #7b5ea7; color: #fff; }
+        .rank-table { width: 100%; max-width: 380px; border-collapse: collapse; }
+        .rank-table th { color: #FFD700; font-size: 11px; padding: 7px 4px; border-bottom: 1px solid #7b5ea7; text-align: center; }
+        .rank-table td { color: #fff; font-size: 12px; padding: 7px 4px; border-bottom: 1px solid rgba(123,94,167,0.25); text-align: center; }
+        .rank-close { margin-top: 15px; padding: 9px 28px; border: 1px solid #c4a6ff; border-radius: 15px; background: transparent; color: #c4a6ff; font-size: 13px; cursor: pointer; margin-bottom: 30px; }
+        .combo-popup { position: fixed; top: 28%; left: 50%; transform: translateX(-50%); font-size: 24px; font-weight: 900; z-index: 300; pointer-events: none; animation: comboPop 0.6s ease-out forwards; }
+        @keyframes comboPop { 0%{opacity:1;transform:translateX(-50%) scale(0.5)}40%{transform:translateX(-50%) scale(1.3)}100%{opacity:0;transform:translateX(-50%) scale(1) translateY(-30px)} }
+    </style>
+</head>
+<body>
+
+<div id="titleScreen">
+    <div class="title-cross">✝️</div>
+    <div class="title-main">무한의 계단</div>
+    <div class="title-sub">믿음의 여정 — 교회 에디션</div>
+    <div class="mode-select">
+        <div class="mode-btn selected" id="modeStory" onclick="selectMode('story')"><span class="mode-icon">⛪➜👑</span>믿음의 여정<span class="mode-label">150계단 · 엔딩 있음</span></div>
+        <div class="mode-btn" id="modeEndless" onclick="selectMode('endless')"><span class="mode-icon">♾️</span>무한 모드<span class="mode-label">끝없는 도전</span></div>
+    </div>
+    <div class="char-section-title">▼ 캐릭터 선택 ▼</div>
+    <div class="char-select" id="charSelectArea"></div>
+    <button class="start-btn" onclick="startGame()">시 작</button>
+    <button class="rank-btn-title" onclick="showRanking()">🏆 순위표</button>
+</div>
+
+<div id="game-view">
+    <div id="bg-layer"></div>
+    <div id="hud"><div class="hud-row"><div class="hud-item hud-floor" id="hudFloor">0 층</div><div class="hud-item" id="hudTime">0.0초</div></div></div>
+    <div id="progressBar"><div id="progressFill"></div></div>
+    <div id="progressLabel"></div>
+    <div id="player"></div>
+    <div id="world"></div>
+    <div id="buttons">
+        <button class="btn" ontouchstart="handleInput('turn');event.preventDefault();" onmousedown="handleInput('turn')"><span class="btn-icon">🔄</span>방향전환</button>
+        <button class="btn" ontouchstart="handleInput('forward');event.preventDefault();" onmousedown="handleInput('forward')"><span class="btn-icon">⬆️</span>오르기</button>
+    </div>
+</div>
+
+<div class="overlay" id="clearScreen">
+    <div class="ov-title">🏆 하나님 나라에 도착!</div>
+    <div class="ov-verse">"내가 선한 싸움을 싸우고 나의 달려갈 길을 마치고 믿음을 지켰으니"<br>— 디모데후서 4:7</div>
+    <div class="ov-stat" id="clearFloor"></div><div class="ov-stat" id="clearTime"></div>
+    <input class="ov-input" id="clearName" placeholder="이름을 입력하세요" maxlength="10">
+    <div class="ov-btns">
+        <button class="ov-btn ov-btn-primary" onclick="submitClear()">기록 등록</button>
+        <button class="ov-btn ov-btn-restart" onclick="restartGame()">🔄 재시작</button>
+        <button class="ov-btn ov-btn-secondary" onclick="goTitle()">타이틀로</button>
+    </div>
+</div>
+
+<div class="overlay" id="overScreen">
+    <div class="ov-title">😇 실족했습니다!</div>
+    <div class="ov-verse">"넘어지는 자를 붙들어 주시는 분은 여호와시라"<br>— 시편 145:14</div>
+    <div class="ov-stat" id="overFloor"></div><div class="ov-stat" id="overTime"></div>
+    <input class="ov-input" id="overName" placeholder="이름을 입력하세요" maxlength="10">
+    <div class="ov-btns">
+        <button class="ov-btn ov-btn-primary" onclick="submitOver()">기록 등록</button>
+        <button class="ov-btn ov-btn-restart" onclick="restartGame()">🔄 재시작</button>
+        <button class="ov-btn ov-btn-secondary" onclick="goTitle()">타이틀로</button>
+    </div>
+</div>
+
+<div id="rankScreen">
+    <div class="rank-title">🏆 순위표</div>
+    <div class="rank-tabs">
+        <button class="rank-tab active" id="tabStory" onclick="switchTab('story')">믿음의 여정</button>
+        <button class="rank-tab" id="tabEndless" onclick="switchTab('endless')">무한 모드</button>
+    </div>
+    <table class="rank-table"><thead><tr><th>#</th><th>이름</th><th>층</th><th>시간</th></tr></thead><tbody id="rankBody"></tbody></table>
+    <button class="rank-close" onclick="closeRanking()">닫기</button>
+</div>
+
+<script>
+// ================================================================
+//  캐릭터 정의 — 4캐릭터
+// ================================================================
+const charDefs = {
+    pastor: {
+        name: '목사님',
+        idle: 'https://i.postimg.cc/NMxfDbBK/idle.png',
+        step: 'https://i.postimg.cc/xCPT5gnc/step.png',
+        fall: 'https://i.postimg.cc/cHc4hT0K/fall.png',
+    },
+    elder: {
+        name: '장로님',
+        idle: 'https://www.dropbox.com/scl/fi/nqu80bsmpsbqefkn36xpu/jang1.png?rlkey=qzcu6k1qvp6ye9adsdveheveq&raw=1',
+        step: 'https://www.dropbox.com/scl/fi/rdnljw3xpq5ajzhyt0a4i/jang2.png?rlkey=21dregwfmdywe72kiqqg1zb6d&raw=1',
+        fall: 'https://www.dropbox.com/scl/fi/kpdmnwbps8fzi4mvksqaq/jang3.png?rlkey=0lu6ysqhpuneups46aum5hvqv&raw=1',
+    },
+    boy: {
+        name: '신광이',
+        idle: 'https://www.dropbox.com/scl/fi/oopz5u34b3a5w357a0vgn/boy1.png?rlkey=51hz3lajs761980cosmu12pvg&raw=1',
+        step: 'https://www.dropbox.com/scl/fi/4b5m7dbamzlv70u9gc5e7/boy2.png?rlkey=sxmu9eiux6jriefc1ot30myja&raw=1',
+        fall: 'https://www.dropbox.com/scl/fi/74e3pvp8wjtafrusfy0xt/boy3.png?rlkey=etgdpw6x2kmv3xsl8njuekoad&raw=1',
+    },
+    girl: {
+        name: '새빛이',
+        idle: 'https://www.dropbox.com/scl/fi/d42i9udz3os1zzbl0zx25/girl1.png?rlkey=wn7e2mn0gygzsh3rp9fb1lekk&raw=1',
+        step: 'https://www.dropbox.com/scl/fi/htxih9x5j5gtt9eic57qx/girl2.png?rlkey=7u8rxj1dcxsdi2w5ylcd5o4f5&raw=1',
+        fall: 'https://www.dropbox.com/scl/fi/0j3ehsned8alxsuuykr3e/girl3.png?rlkey=tfphy1v3m9l9ezl3vhlar96s8&raw=1',
+    },
+};
+
+// ================================================================
+//  전역 변수
+// ================================================================
+let gameMode='story', selectedChar='pastor';
+const STORY_GOAL=150;
+let score=0,playerDir=1,steps=[],gameActive=false;
+let gameStartTime=0,elapsedTime=0,timerInterval=null,combo=0,inputLocked=false;
+
+const STEP_DX=55,STEP_DY=48,STEP_RENDER_W=80,STEP_RENDER_H=28;
+const BTN_HEIGHT=130,PLAYER_W=120,PLAYER_H=150;
+const CHAR_VISUAL_OFFSET=20;
+
+// ================================================================
+//  타이틀 캐릭터 선택 동적 생성
+// ================================================================
+function buildCharSelect() {
+    const area = document.getElementById('charSelectArea');
+    area.innerHTML = '';
+    Object.keys(charDefs).forEach(key => {
+        const def = charDefs[key];
+        const btn = document.createElement('div');
+        btn.className = 'char-btn' + (key === selectedChar ? ' selected' : '');
+        btn.id = 'char_' + key;
+        btn.onclick = () => selectChar(key);
+
+        const preview = document.createElement('div');
+        preview.className = 'char-preview';
+        preview.style.backgroundImage = `url('${def.idle}')`;
+
+        const label = document.createElement('span');
+        label.textContent = def.name;
+
+        btn.appendChild(preview);
+        btn.appendChild(label);
+        area.appendChild(btn);
+    });
+}
+buildCharSelect();
+
+// 이미지 미리 로드 (끊김 방지)
+function preloadImages() {
+    Object.values(charDefs).forEach(def => {
+        ['idle','step','fall'].forEach(state => {
+            const img = new Image();
+            img.src = def[state];
+        });
+    });
+}
+preloadImages();
+
+// ================================================================
+//  스토리 / 배경
+// ================================================================
+const storyMessages=[
+    {floor:1,text:"⛪ 교회에서 출발!",verse:"여호와를 의지하는 자는 시온 산이 영원히 흔들리지 아니함 같도다 — 시 125:1"},
+    {floor:15,text:"🌅 새벽기도의 은혜",verse:"여호와를 앙망하는 자는 새 힘을 얻으리니 — 이사야 40:31"},
+    {floor:30,text:"🌊 시련의 바다를 건넙니다",verse:"두려워하지 말라 내가 너와 함께 함이라 — 이사야 41:10"},
+    {floor:50,text:"⛰️ 광야를 지나며...",verse:"광야에서 길을 만들며 사막에서 강을 내리라 — 이사야 43:19"},
+    {floor:70,text:"🔥 연단의 불길 속에서",verse:"내가 너를 연단하되 은을 연단하듯 하였노라 — 이사야 48:10"},
+    {floor:90,text:"🌈 무지개 언약",verse:"내가 다시는 물로 모든 생물을 멸하지 아니하리라 — 창세기 9:15"},
+    {floor:110,text:"☀️ 빛이 보입니다!",verse:"빛이 있으라 하시니 빛이 있었고 — 창세기 1:3"},
+    {floor:130,text:"👑 거의 다 왔습니다!",verse:"달려갈 길을 마치고 믿음을 지켰으니 — 디모데후서 4:7"},
+    {floor:145,text:"✨ 하나님 나라가 눈앞에!",verse:"면류관이 예비되어 있습니다"},
+];
+function getBgForFloor(f){const p=gameMode==='story'?f/STORY_GOAL:Math.min(f/200,1);if(p<.1)return{bg:'linear-gradient(180deg,#0a0520,#1a0a3e,#2d1b69)',label:'⛪ 교회'};if(p<.2)return{bg:'linear-gradient(180deg,#0a0520,#1a1050,#3a2080)',label:'🌅 새벽기도'};if(p<.35)return{bg:'linear-gradient(180deg,#050a20,#0d1b4a,#1a3a7a)',label:'🌊 시련의 바다'};if(p<.5)return{bg:'linear-gradient(180deg,#1a0a00,#4e342e,#8d6e63)',label:'⛰️ 광야'};if(p<.65)return{bg:'linear-gradient(180deg,#1a0000,#6d1b1b,#bf360c)',label:'🔥 연단의 불'};if(p<.8)return{bg:'linear-gradient(180deg,#1a0040,#4a148c,#1565c0)',label:'🌈 무지개 언약'};if(p<.9)return{bg:'linear-gradient(180deg,#1a1040,#4a2c8a,#7b5ea7)',label:'☀️ 빛의 길'};return{bg:'linear-gradient(180deg,#2a1050,#6a3faa,#ffd740)',label:'👑 하나님 나라'};}
+function getStepType(f){if(gameMode==='story'){if(f>=STORY_GOAL)return'gold';const p=f/STORY_GOAL;if(p>=.3&&p<.45&&Math.random()<.2)return'ice';if(p>=.45&&p<.65&&Math.random()<.15)return'fire';if(p>=.55&&p<.75&&Math.random()<.15)return'dark';if(p>=.85&&Math.random()<.2)return'gold';}else{if(f>30&&Math.random()<.12)return'ice';if(f>60&&Math.random()<.1)return'fire';if(f>100&&Math.random()<.1)return'dark';if(f>0&&f%50===0)return'gold';}return'normal';}
+
+// 오디오
+let audioCtx=null;
+function ensureAudio(){if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==='suspended')audioCtx.resume();}
+function playTone(f,d,t,v){if(!audioCtx)return;const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type=t||'sine';o.frequency.setValueAtTime(f,audioCtx.currentTime);g.gain.setValueAtTime(v||.15,audioCtx.currentTime);g.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+d);o.connect(g);g.connect(audioCtx.destination);o.start();o.stop(audioCtx.currentTime+d);}
+function sfxJump(){playTone(520,.1,'sine',.2);setTimeout(()=>playTone(700,.08,'sine',.12),50);}
+function sfxTurn(){playTone(480,.08,'sine',.15);setTimeout(()=>playTone(650,.08,'sine',.1),40);}
+function sfxFail(){playTone(250,.15,'sawtooth',.15);setTimeout(()=>playTone(180,.25,'sawtooth',.12),100);}
+function sfxClear(){[523,659,784,1047].forEach((f,i)=>setTimeout(()=>playTone(f,.3,'sine',.18),i*130));}
+let bgmInterval=null,bgmOn=false;
+function startBGM(){if(bgmOn)return;bgmOn=true;const m=[262,330,392,523,392,330,262,330,349,440,523,440,392,330,392,523];let i=0;bgmInterval=setInterval(()=>{if(gameActive)playTone(m[i++%m.length],.3,'triangle',.05);},400);}
+function stopBGM(){bgmOn=false;if(bgmInterval){clearInterval(bgmInterval);bgmInterval=null;}}
+
+// UI
+function selectMode(m){gameMode=m;document.getElementById('modeStory').classList.toggle('selected',m==='story');document.getElementById('modeEndless').classList.toggle('selected',m==='endless');}
+function selectChar(c){
+    selectedChar=c;
+    document.querySelectorAll('.char-btn').forEach(b=>b.classList.remove('selected'));
+    document.getElementById('char_'+c).classList.add('selected');
+}
+
+// 게임
+const world=document.getElementById('world'),player=document.getElementById('player'),bgLayer=document.getElementById('bg-layer');
+
+function startGame(){ensureAudio();document.getElementById('titleScreen').classList.add('hidden');document.getElementById('game-view').classList.add('active');document.getElementById('progressBar').style.display=gameMode==='story'?'block':'none';document.getElementById('progressLabel').style.display=gameMode==='story'?'block':'none';initGameState();startBGM();}
+function restartGame(){document.getElementById('clearScreen').classList.remove('active');document.getElementById('overScreen').classList.remove('active');stopBGM();if(timerInterval)clearInterval(timerInterval);shownMsgs.clear();initGameState();startBGM();}
+
+function initGameState(){
+    score=0;playerDir=1;steps=[];combo=0;gameActive=true;inputLocked=false;
+    world.innerHTML='';
+    const ci=charDefs[selectedChar];
+    player.style.backgroundImage=`url('${ci.idle}')`;
+    player.style.filter='none';
+    player.style.transform='translateX(-50%) scaleX(1)';
+    const feetScreenY=window.innerHeight-BTN_HEIGHT;
+    player.style.top=(feetScreenY-PLAYER_H+CHAR_VISUAL_OFFSET)+'px';
+    player.style.bottom='auto';
+    document.getElementById('hudFloor').textContent='0 층';
+    document.getElementById('hudTime').textContent='0.0초';
+    if(gameMode==='story'){document.getElementById('progressFill').style.width='0%';document.getElementById('progressLabel').textContent='⛪ 교회';}
+    updateBg(0);generateBgStars();
+    steps.push({x:window.innerWidth/2,y:5000,dir:1,floor:0,type:'normal'});
+    renderStep(steps[0]);
+    for(let i=0;i<30;i++)addNewStep();
+    updateCamera();
+    gameStartTime=performance.now();
+    if(timerInterval)clearInterval(timerInterval);
+    timerInterval=setInterval(()=>{if(!gameActive)return;elapsedTime=(performance.now()-gameStartTime)/1000;document.getElementById('hudTime').textContent=elapsedTime.toFixed(1)+'초';},100);
+}
+
+function generateBgStars(){bgLayer.querySelectorAll('.bg-star').forEach(e=>e.remove());for(let i=0;i<40;i++){const s=document.createElement('div');s.className='bg-star';const sz=Math.random()*3+1;s.style.cssText=`width:${sz}px;height:${sz}px;left:${Math.random()*100}%;top:${Math.random()*100}%;animation-delay:${Math.random()*2}s;animation-duration:${1.5+Math.random()*2}s`;bgLayer.appendChild(s);}}
+function updateBg(f){bgLayer.style.background=getBgForFloor(f).bg;}
+function addNewStep(){const last=steps[steps.length-1];const dir=Math.random()>.5?1:-1;const floorNum=last.floor+1;steps.push({x:last.x+dir*STEP_DX,y:last.y-STEP_DY,dir,floor:floorNum,type:getStepType(floorNum)});renderStep(steps[steps.length-1]);}
+function renderStep(s){const div=document.createElement('div');div.className='step step-'+s.type;div.style.left=(s.x-STEP_RENDER_W/2)+'px';div.style.top=s.y+'px';if(s.floor>0&&s.floor%10===0){const l=document.createElement('div');l.className='step-label';l.textContent=s.floor+'F';div.appendChild(l);}world.appendChild(div);}
+function updateCamera(){const cur=steps[score];const feetScreenY=window.innerHeight-BTN_HEIGHT;const tx=window.innerWidth/2-cur.x;const ty=feetScreenY-cur.y;world.style.transform=`translate(${tx}px,${ty}px)`;}
+
+function handleInput(action){
+    if(!gameActive||inputLocked)return;ensureAudio();
+    const nextStep=steps[score+1];if(!nextStep)return;
+    let moveDir;
+    if(action==='forward'){moveDir=playerDir;}else{playerDir*=-1;player.style.transform=`translateX(-50%) scaleX(${playerDir})`;moveDir=playerDir;}
+    if(moveDir===nextStep.dir){
+        inputLocked=true;score++;combo++;
+        const ci=charDefs[selectedChar];
+        player.style.backgroundImage=`url('${ci.step}')`;
+        if(action==='forward')sfxJump();else sfxTurn();
+        if(combo>=5&&combo%5===0)showCombo(combo);
+        document.getElementById('hudFloor').textContent=score+' 층';updateBg(score);
+        if(gameMode==='story'){const pct=Math.min(score/STORY_GOAL*100,100);document.getElementById('progressFill').style.width=pct+'%';document.getElementById('progressLabel').textContent=getBgForFloor(score).label;checkStoryMessage(score);if(score>=STORY_GOAL){gameActive=false;stopBGM();clearInterval(timerInterval);sfxClear();updateCamera();setTimeout(()=>showClear(),500);return;}}
+        updateCamera();while(steps.length-score<30)addNewStep();
+        setTimeout(()=>{player.style.backgroundImage=`url('${ci.idle}')`;inputLocked=false;},80);
+    }else{combo=0;gameActive=false;stopBGM();clearInterval(timerInterval);player.style.backgroundImage=`url('${charDefs[selectedChar].fall}')`;sfxFail();setTimeout(()=>showGameOver(),400);}
+}
+document.addEventListener('keydown',(e)=>{if(e.repeat)return;if(e.key==='ArrowLeft'||e.key==='a'||e.key==='A')handleInput('turn');if(e.key==='ArrowRight'||e.key==='ArrowUp'||e.key==='d'||e.key==='D'||e.key===' ')handleInput('forward');});
+
+let shownMsgs=new Set();
+function checkStoryMessage(f){const m=storyMessages.find(m=>m.floor===f);if(m&&!shownMsgs.has(f)){shownMsgs.add(f);const el=document.createElement('div');el.className='story-popup';el.innerHTML=`${m.text}<span class="story-verse">${m.verse}</span>`;document.body.appendChild(el);setTimeout(()=>el.remove(),3200);}}
+function showCombo(c){const el=document.createElement('div');el.className='combo-popup';el.style.color=`hsl(${c*12},100%,65%)`;el.textContent=`🔥 ${c} COMBO!`;document.body.appendChild(el);setTimeout(()=>el.remove(),700);}
+
+function showClear(){document.getElementById('clearFloor').textContent=`도달 층: ${score} 층`;document.getElementById('clearTime').textContent=`소요 시간: ${elapsedTime.toFixed(1)} 초`;document.getElementById('clearScreen').classList.add('active');}
+function showGameOver(){document.getElementById('overFloor').textContent=`도달 층: ${score} 층`;document.getElementById('overTime').textContent=`소요 시간: ${elapsedTime.toFixed(1)} 초`;document.getElementById('overScreen').classList.add('active');}
+function submitClear(){const n=document.getElementById('clearName').value.trim()||'무명의 성도';saveScore(gameMode,n,score,+elapsedTime.toFixed(1));document.getElementById('clearScreen').classList.remove('active');showRanking();}
+function submitOver(){const n=document.getElementById('overName').value.trim()||'무명의 성도';saveScore(gameMode,n,score,+elapsedTime.toFixed(1));document.getElementById('overScreen').classList.remove('active');showRanking();}
+function goTitle(){gameActive=false;stopBGM();if(timerInterval)clearInterval(timerInterval);shownMsgs.clear();['clearScreen','overScreen'].forEach(id=>document.getElementById(id).classList.remove('active'));document.getElementById('game-view').classList.remove('active');document.getElementById('rankScreen').classList.remove('active');document.getElementById('titleScreen').classList.remove('hidden');}
+
+function getScores(m){try{return JSON.parse(localStorage.getItem('moohan_'+m))||[];}catch{return[];}}
+function saveScore(m,name,floor,time){const s=getScores(m);s.push({name,floor,time,date:new Date().toLocaleDateString()});s.sort((a,b)=>b.floor!==a.floor?b.floor-a.floor:a.time-b.time);localStorage.setItem('moohan_'+m,JSON.stringify(s.slice(0,50)));}
+let currentTab='story';
+function showRanking(){document.getElementById('rankScreen').classList.add('active');renderRank(currentTab);}
+function closeRanking(){document.getElementById('rankScreen').classList.remove('active');if(!document.getElementById('game-view').classList.contains('active'))document.getElementById('titleScreen').classList.remove('hidden');}
+function switchTab(t){currentTab=t;document.getElementById('tabStory').classList.toggle('active',t==='story');document.getElementById('tabEndless').classList.toggle('active',t==='endless');renderRank(t);}
+function renderRank(m){const s=getScores(m),tb=document.getElementById('rankBody');if(!s.length){tb.innerHTML='<tr><td colspan="4" style="color:#7b5ea7;padding:25px;">아직 기록이 없습니다</td></tr>';return;}tb.innerHTML=s.slice(0,20).map((r,i)=>{const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1);return`<tr><td>${medal}</td><td>${r.name}</td><td>${r.floor}층</td><td>${r.time}초</td></tr>`;}).join('');}
+</script>
+</body>
+</html>
