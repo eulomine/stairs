@@ -338,7 +338,14 @@ function getScores(m){try{return JSON.parse(localStorage.getItem('moohan_'+m))||
 function saveScore(m,name,floor,time){const s=getScores(m);s.push({name,floor,time,date:new Date().toLocaleDateString()});s.sort((a,b)=>b.floor!==a.floor?b.floor-a.floor:a.time-b.time);localStorage.setItem('moohan_'+m,JSON.stringify(s.slice(0,50)));}
 let currentTab='story';
 function showRanking(){document.getElementById('rankScreen').classList.add('active');renderRank(currentTab);}
-function closeRanking(){document.getElementById('rankScreen').classList.remove('active');if(!document.getElementById('game-view').classList.contains('active'))document.getElementById('titleScreen').classList.remove('hidden');}
+function closeRanking(){
+    document.getElementById('rankScreen').classList.remove('active');
+    // 게임이 끝난 상태면 타이틀로 돌아가기
+    if (!gameActive) {
+        document.getElementById('game-view').classList.remove('active');
+        document.getElementById('titleScreen').classList.remove('hidden');
+    }
+}
 function switchTab(t){currentTab=t;document.getElementById('tabStory').classList.toggle('active',t==='story');document.getElementById('tabEndless').classList.toggle('active',t==='endless');renderRank(t);}
 function renderRank(m){const s=getScores(m),tb=document.getElementById('rankBody');if(!s.length){tb.innerHTML='<tr><td colspan="4" style="color:#7b5ea7;padding:25px;">아직 기록이 없습니다</td></tr>';return;}tb.innerHTML=s.slice(0,20).map((r,i)=>{const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1);return`<tr><td>${medal}</td><td>${r.name}</td><td>${r.floor}층</td><td>${r.time}초</td></tr>`;}).join('');}
 </script>
