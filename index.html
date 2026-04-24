@@ -28,9 +28,25 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
 #game-view{position:fixed;inset:0;display:none;z-index:10;}
 #game-view.active{display:block;}
 
-#bg-layer{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;background-color:#0a0520;background-size:cover;background-position:center;background-repeat:no-repeat;transition:background-position .3s ease-out;}
+/* 배경: 두 레이어로 크로스페이드 */
+.bg-layer{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;background-color:#0a0520;background-size:cover;background-position:center;background-repeat:no-repeat;transition:opacity 1s ease-in-out;}
+#bgA{opacity:1;z-index:0;}
+#bgB{opacity:0;z-index:0;}
 
-#world{position:absolute;top:0;left:0;width:100%;height:100%;z-index:1;transition:transform .12s ease-out;}
+/* 구름 전환 오버레이 */
+#cloudOverlay{position:fixed;inset:0;z-index:2;pointer-events:none;opacity:0;transition:opacity .6s ease-in-out;background:linear-gradient(180deg,
+  rgba(255,255,255,0) 0%,
+  rgba(255,255,255,.7) 20%,
+  rgba(255,255,255,.95) 40%,
+  rgba(255,255,255,.95) 60%,
+  rgba(255,255,255,.7) 80%,
+  rgba(255,255,255,0) 100%);}
+#cloudOverlay.active{opacity:1;}
+
+/* 구름 조각들 */
+.cloud{position:absolute;background:rgba(255,255,255,.8);border-radius:50%;filter:blur(20px);pointer-events:none;}
+
+#world{position:absolute;top:0;left:0;width:100%;height:100%;z-index:3;transition:transform .12s ease-out;}
 .step{position:absolute;image-rendering:pixelated;}
 .step-normal{background:#8B5E3C;border-top:3px solid #A97C50;border-left:2px solid #A97C50;border-right:2px solid #6B4226;border-bottom:2px solid #5C3A1E;}
 .step-ice{background:#88ccee;border-top:3px solid #aaeeff;border-left:2px solid #aaeeff;border-right:2px solid #66aabb;border-bottom:2px solid #5599aa;}
@@ -107,7 +123,9 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
 </div>
 
 <div id="game-view">
-  <div id="bg-layer"></div>
+  <div class="bg-layer" id="bgA"></div>
+  <div class="bg-layer" id="bgB"></div>
+  <div id="cloudOverlay"></div>
   <div id="world"></div>
   <img id="player" src="" alt="">
   <div id="hud">
@@ -157,82 +175,40 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
 </div>
 
 <script>
-/* ================================================================
-   상수
-   ================================================================ */
-const STEP_W=55, STEP_DY=48, STEP_RENDER_W=80, STEP_RENDER_H=28;
-const PLAYER_W=120, PLAYER_H=150, CHAR_VISUAL_OFFSET=20;
-const BTN_HEIGHT=130, AHEAD_COUNT=6, INPUT_COOLDOWN=150;
+/* ================================================================ */
+const STEP_W=55,STEP_DY=48,STEP_RENDER_W=80,STEP_RENDER_H=28;
+const PLAYER_W=120,PLAYER_H=150,CHAR_VISUAL_OFFSET=20;
+const BTN_HEIGHT=130,AHEAD_COUNT=6,INPUT_COOLDOWN=150;
 
-/* ── 배경 URL ── */
+/* ── 배경 (postimg) ── */
 const BG_URLS=[
-  'https://www.dropbox.com/scl/fi/imtfk93fd0929t08v18mi/1.jpeg?rlkey=3zgjyqcfa63yoknkxj0a2qjqo&st=m5gi2y6m&raw=1',
-  'https://www.dropbox.com/scl/fi/47tfv96xudau14lsgltf3/2.jpg?rlkey=aouwvp38cdi7k51rwxzfrtw4f&st=uwbbj06o&raw=1',
-  'https://www.dropbox.com/scl/fi/mncrya2p856gf36jvwog3/3.jpg?rlkey=ujzz7tgyp421n8g94787y9lvr&st=alfdnzw5&raw=1',
-  'https://www.dropbox.com/scl/fi/gbnp9lv81p7cwev506ow6/4.jpg?rlkey=8rbenlupep5v7jz7hrgiu3fzo&st=p1b03c9b&raw=1',
-  'https://www.dropbox.com/scl/fi/t08wr4l0cwufoy9oyfbbq/5.jpg?rlkey=as3jhza1ws44v0ziwdnl9544e&st=jnco2k99&raw=1'
+  'https://i.postimg.cc/sfnhQdQF/1.jpg',
+  'https://i.postimg.cc/qBm3hVt5/2.jpg',
+  'https://i.postimg.cc/NGNH9qyn/3.jpg',
+  'https://i.postimg.cc/zDdgbZL2/4.jpg',
+  'https://i.postimg.cc/sfnhQdB0/5.jpg'
 ];
 
-/* ── 캐릭터 URL ── */
+/* ── 캐릭터 (전부 postimg) ── */
 const charDefs={
   pastor:{name:'목사님',
     idle:'https://i.postimg.cc/NMxfDbBK/idle.png',
     step:'https://i.postimg.cc/xCPT5gnc/step.png',
     fall:'https://i.postimg.cc/cHc4hT0K/fall.png'},
   elder:{name:'장로님',
-    idle:'https://www.dropbox.com/scl/fi/nqu80bsmpsbqefkn36xpu/jang1.png?rlkey=qzcu6k1qvp6ye9adsdveheveq&st=82ze4o0q&raw=1',
-    step:'https://www.dropbox.com/scl/fi/rdnljw3xpq5ajzhyt0a4i/jang2.png?rlkey=21dregwfmdywe72kiqqg1zb6d&st=9w0t7jws&raw=1',
-    fall:'https://www.dropbox.com/scl/fi/kpdmnwbps8fzi4mvksqaq/jang3.png?rlkey=0lu6ysqhpuneups46aum5hvqv&st=twcji63c&raw=1'},
+    idle:'https://i.postimg.cc/g0PXFG5w/jang1.png',
+    step:'https://i.postimg.cc/Xv0GSnhJ/jang2.png',
+    fall:'https://i.postimg.cc/R0z65v80/jang3.png'},
   boy:{name:'신광이',
-    idle:'https://www.dropbox.com/scl/fi/oopz5u34b3a5w357a0vgn/boy1.png?rlkey=51hz3lajs761980cosmu12pvg&st=o6ne4aqg&raw=1',
-    step:'https://www.dropbox.com/scl/fi/4b5m7dbamzlv70u9gc5e7/boy2.png?rlkey=sxmu9eiux6jriefc1ot30myja&st=37diwiji&raw=1',
-    fall:'https://www.dropbox.com/scl/fi/74e3pvp8wjtafrusfy0xt/boy3.png?rlkey=etgdpw6x2kmv3xsl8njuekoad&st=vyxiycjv&raw=1'},
+    idle:'https://i.postimg.cc/Z5NBMWfW/boy1.png',
+    step:'https://i.postimg.cc/4xc7SY8m/boy2.png',
+    fall:'https://i.postimg.cc/cJNgydjL/boy3.png'},
   girl:{name:'새빛이',
-    idle:'https://www.dropbox.com/scl/fi/d42i9udz3os1zzbl0zx25/girl1.png?rlkey=wn7e2mn0gygzsh3rp9fb1lekk&st=eh1cxct4&raw=1',
-    step:'https://www.dropbox.com/scl/fi/htxih9x5j5gtt9eic57qx/girl2.png?rlkey=7u8rxj1dcxsdi2w5ylcd5o4f5&st=qv29xjrd&raw=1',
-    fall:'https://www.dropbox.com/scl/fi/0j3ehsned8alxsuuykr3e/girl3.png?rlkey=tfphy1v3m9l9ezl3vhlar96s8&st=i79cxs15&raw=1'}
+    idle:'https://i.postimg.cc/nhmjPXdr/girl1.png',
+    step:'https://i.postimg.cc/3xG4ckLy/girl2.png',
+    fall:'https://i.postimg.cc/3wH4536r/girl3.png'}
 };
 
-/* ================================================================
-   이미지 캐시 — 핵심 수정!
-   모든 이미지를 Data URL로 변환해 캐시.
-   이후 src 교체 시 네트워크 없이 즉시 표시됨.
-   ================================================================ */
-const imageCache = {}; // key: 원본URL → value: dataURL 또는 원본URL
-
-function cacheImageAsDataURL(url){
-  return new Promise(resolve=>{
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.onload = ()=>{
-      try {
-        const c = document.createElement('canvas');
-        c.width = img.naturalWidth;
-        c.height = img.naturalHeight;
-        const ctx = c.getContext('2d');
-        ctx.drawImage(img,0,0);
-        const dataURL = c.toDataURL('image/png');
-        imageCache[url] = dataURL;
-      } catch(e){
-        /* CORS 실패 시 원본 URL 그대로 사용 */
-        imageCache[url] = url;
-      }
-      resolve();
-    };
-    img.onerror = ()=>{
-      imageCache[url] = url;
-      resolve();
-    };
-    img.src = url;
-  });
-}
-
-/* 캐시된 URL을 가져오는 헬퍼 */
-function cached(url){
-  return imageCache[url] || url;
-}
-
-/* ── 스토리 메시지 ── */
 const storyMessages=[
   {floor:1,text:'교회에서 첫 발을 내딛습니다.',verse:'히브리서 11:1 — 믿음은 바라는 것들의 실상이요'},
   {floor:15,text:'새벽기도의 시간… 어둠 속에서 빛을 찾습니다.',verse:'시편 119:105 — 주의 말씀은 내 발에 등이요'},
@@ -245,18 +221,22 @@ const storyMessages=[
   {floor:145,text:'영광의 문 앞에 섰습니다!',verse:'요한계시록 21:4 — 다시는 사망이 없고 슬픔도 없으리라'}
 ];
 
-/* ── 게임 상태 ── */
+/* ── 상태 ── */
 let gameMode='story',selectedChar='pastor',gameActive=false;
 let score=0,combo=0,maxCombo=0;
 let steps=[],moveDir=1,playerDir=1;
 let timerStart=0,timerInterval=null,elapsed=0;
 let currentBgIdx=-1,heavenGateEl=null;
 let lastInputTime=0,storyPopupTimer=null;
+let bgTransitioning=false; // 배경 전환 중 플래그
+let activeBgLayer='A';     // 현재 보이는 배경 레이어
 
 /* ── DOM ── */
 const world=document.getElementById('world');
 const player=document.getElementById('player');
-const bgLayer=document.getElementById('bg-layer');
+const bgA=document.getElementById('bgA');
+const bgB=document.getElementById('bgB');
+const cloudOverlay=document.getElementById('cloudOverlay');
 const bgLabel=document.getElementById('bgLabel');
 const hud=document.getElementById('hud');
 const hudFloor=document.getElementById('hudFloor');
@@ -267,68 +247,74 @@ const comboPopup=document.getElementById('comboPopup');
 const storyPopupEl=document.getElementById('storyPopup');
 
 /* ================================================================
-   프리로드 — Data URL 캐시 포함
+   이미지 캐시 (Data URL)
    ================================================================ */
-async function preloadAllAssets(onProgress, onDone){
-  /* 모든 캐릭터 이미지 URL 수집 */
-  const charUrls=[];
-  Object.values(charDefs).forEach(c=>{
-    charUrls.push(c.idle, c.step, c.fall);
+const imageCache={};
+
+function cacheImageAsDataURL(url){
+  return new Promise(resolve=>{
+    const img=new Image();
+    img.crossOrigin='anonymous';
+    img.onload=()=>{
+      try{
+        const c=document.createElement('canvas');
+        c.width=img.naturalWidth;c.height=img.naturalHeight;
+        c.getContext('2d').drawImage(img,0,0);
+        imageCache[url]=c.toDataURL('image/png');
+      }catch(e){imageCache[url]=url;}
+      resolve();
+    };
+    img.onerror=()=>{imageCache[url]=url;resolve();};
+    img.src=url;
   });
+}
+function cached(url){return imageCache[url]||url;}
 
-  const allUrls = [...charUrls, ...BG_URLS];
-  const total = allUrls.length;
-  let loaded = 0;
-  const loadText = document.getElementById('loadText');
+/* ================================================================
+   프리로드
+   ================================================================ */
+async function preloadAllAssets(onProgress,onDone){
+  const charUrls=[];
+  Object.values(charDefs).forEach(c=>{charUrls.push(c.idle,c.step,c.fall);});
+  const allUrls=[...charUrls,...BG_URLS];
+  const total=allUrls.length;
+  let loaded=0;
+  const loadText=document.getElementById('loadText');
 
-  /* 캐릭터 이미지는 Data URL로 캐시 (빠른 전환을 위해) */
-  const promises = allUrls.map((url, i)=>{
+  const promises=allUrls.map((url,i)=>{
     return new Promise(resolve=>{
-      if(i < charUrls.length){
-        /* 캐릭터 → Data URL 캐시 시도 */
+      if(i<charUrls.length){
         cacheImageAsDataURL(url).then(()=>{
-          loaded++;
-          if(onProgress) onProgress(loaded, total);
-          if(loadText) loadText.textContent = `${loaded}/${total}`;
+          loaded++;if(onProgress)onProgress(loaded,total);
+          if(loadText)loadText.textContent=`${loaded}/${total}`;
           resolve();
         });
-      } else {
-        /* 배경 → 일반 프리로드 */
-        const img = new Image();
-        img.crossOrigin = 'anonymous';
-        const done = ()=>{
-          loaded++;
-          if(onProgress) onProgress(loaded, total);
-          if(loadText) loadText.textContent = `${loaded}/${total}`;
-          resolve();
-        };
-        img.onload = done;
-        img.onerror = done;
-        img.src = url;
+      }else{
+        const img=new Image();img.crossOrigin='anonymous';
+        const done=()=>{loaded++;if(onProgress)onProgress(loaded,total);
+          if(loadText)loadText.textContent=`${loaded}/${total}`;resolve();};
+        img.onload=done;img.onerror=done;img.src=url;
       }
     });
   });
-
   await Promise.all(promises);
-  if(onDone) onDone();
+  if(onDone)onDone();
 }
 
 window.addEventListener('load',()=>{
   const fill=document.getElementById('loadFill');
   preloadAllAssets(
-    (ld,tot)=>{ fill.style.width=Math.round(ld/tot*100)+'%'; },
-    ()=>{
-      setTimeout(()=>{
-        document.getElementById('loadScreen').classList.add('hidden');
-        document.getElementById('titleScreen').classList.remove('hidden');
-        buildCharSelect();
-      },400);
-    }
+    (ld,tot)=>{fill.style.width=Math.round(ld/tot*100)+'%';},
+    ()=>{setTimeout(()=>{
+      document.getElementById('loadScreen').classList.add('hidden');
+      document.getElementById('titleScreen').classList.remove('hidden');
+      buildCharSelect();
+    },400);}
   );
 });
 
 /* ================================================================
-   입력 이벤트 — 터치/마우스 중복 방지
+   입력 이벤트
    ================================================================ */
 (function setupButtons(){
   const btnTurn=document.getElementById('btnTurn');
@@ -336,27 +322,25 @@ window.addEventListener('load',()=>{
   let touchHandled=false;
 
   btnTurn.addEventListener('touchstart',function(e){
-    e.preventDefault(); touchHandled=true; handleInput('turn');
+    e.preventDefault();touchHandled=true;handleInput('turn');
   },{passive:false});
   btnTurn.addEventListener('mousedown',function(e){
-    if(touchHandled){touchHandled=false;return;} handleInput('turn');
+    if(touchHandled){touchHandled=false;return;}handleInput('turn');
   });
-
   btnFwd.addEventListener('touchstart',function(e){
-    e.preventDefault(); touchHandled=true; handleInput('forward');
+    e.preventDefault();touchHandled=true;handleInput('forward');
   },{passive:false});
   btnFwd.addEventListener('mousedown',function(e){
-    if(touchHandled){touchHandled=false;return;} handleInput('forward');
+    if(touchHandled){touchHandled=false;return;}handleInput('forward');
   });
-
   document.addEventListener('touchend',function(){
     setTimeout(()=>{touchHandled=false;},300);
   });
 })();
 
 document.addEventListener('keydown',function(e){
-  if(e.key==='ArrowLeft'||e.key==='a') handleInput('turn');
-  else if(e.key==='ArrowRight'||e.key==='d'||e.key==='ArrowUp'||e.key==='w') handleInput('forward');
+  if(e.key==='ArrowLeft'||e.key==='a')handleInput('turn');
+  else if(e.key==='ArrowRight'||e.key==='d'||e.key==='ArrowUp'||e.key==='w')handleInput('forward');
 });
 
 /* ================================================================
@@ -370,7 +354,6 @@ function buildCharSelect(){
   Object.entries(charDefs).forEach(([key,def])=>{
     const btn=document.createElement('button');
     btn.className='char-btn'+(key===selectedChar?' selected':'');
-    /* 캐시된 이미지 사용 */
     btn.innerHTML=`<img src="${cached(def.idle)}"><span>${def.name}</span>`;
     btn.onclick=()=>{
       selectedChar=key;
@@ -381,33 +364,78 @@ function buildCharSelect(){
   });
   area.appendChild(wrap);
 }
-
 function selectMode(mode){gameMode=mode;startGame();}
 
 /* ================================================================
-   배경
+   배경 시스템 — 구름 전환 효과
    ================================================================ */
 function getBgPhase(floor){
   const maxF=(gameMode==='story')?150:250;
   const p=Math.min(floor/maxF,1);
-  if(p<.20) return {idx:0,label:'⛪ 교회'};
-  if(p<.40) return {idx:1,label:'🌊 시련의 바다'};
-  if(p<.60) return {idx:2,label:'🏜️ 광야'};
-  if(p<.80) return {idx:3,label:'🔥 연단의 불'};
-  return {idx:4,label:'✨ 천국'};
+  if(p<.20)return{idx:0,label:'⛪ 교회'};
+  if(p<.40)return{idx:1,label:'🌊 시련의 바다'};
+  if(p<.60)return{idx:2,label:'🏜️ 광야'};
+  if(p<.80)return{idx:3,label:'🔥 연단의 불'};
+  return{idx:4,label:'✨ 천국'};
+}
+
+function setBgLayer(layer,idx){
+  layer.style.backgroundImage=`url('${BG_URLS[idx]}')`;
+  layer.style.backgroundSize='cover';
+  layer.style.backgroundPosition='center';
+}
+
+function transitionBg(newIdx){
+  if(bgTransitioning)return;
+  bgTransitioning=true;
+
+  const incoming=(activeBgLayer==='A')?bgB:bgA;
+  const outgoing=(activeBgLayer==='A')?bgA:bgB;
+
+  /* 새 배경을 뒤쪽 레이어에 세팅 */
+  setBgLayer(incoming,newIdx);
+  incoming.style.opacity='1';
+
+  /* 구름이 몰려옴 */
+  cloudOverlay.classList.add('active');
+
+  setTimeout(()=>{
+    /* 구름이 가장 짙을 때 — 기존 배경 숨기고 새 배경 표시 */
+    outgoing.style.opacity='0';
+    activeBgLayer=(activeBgLayer==='A')?'B':'A';
+  },600);
+
+  setTimeout(()=>{
+    /* 구름 사라짐 */
+    cloudOverlay.classList.remove('active');
+    bgTransitioning=false;
+  },1200);
 }
 
 function updateBg(floor){
   const phase=getBgPhase(floor);
+
   if(phase.idx!==currentBgIdx){
+    if(currentBgIdx===-1){
+      /* 첫 배경: 전환 효과 없이 즉시 */
+      setBgLayer(bgA,phase.idx);
+      bgA.style.opacity='1';
+      activeBgLayer='A';
+    }else{
+      /* 구름 전환 */
+      transitionBg(phase.idx);
+    }
     currentBgIdx=phase.idx;
-    bgLayer.style.backgroundImage=`url('${BG_URLS[phase.idx]}')`;
   }
+
+  /* 구간 내 세로 스크롤 */
   const maxF=(gameMode==='story')?150:250;
   const segSize=maxF/5;
   const segStart=phase.idx*segSize;
   const localP=Math.min((floor-segStart)/segSize,1);
-  bgLayer.style.backgroundPosition=`center ${30+localP*40}%`;
+  const scrollY=30+localP*40;
+  const current=(activeBgLayer==='A')?bgA:bgB;
+  current.style.backgroundPosition=`center ${scrollY}%`;
 
   bgLabel.textContent=phase.label;
   bgLabel.style.opacity='1';
@@ -459,25 +487,20 @@ function getStepType(floor){
   }
   return'normal';
 }
-
 function addNewStep(){
   const prev=steps[steps.length-1];
   const dir=Math.random()<.5?-1:1;
-  const s={x:prev.x+dir*STEP_W, y:prev.y-STEP_DY, dir:dir,
-           type:getStepType(steps.length), floor:steps.length, el:null};
-  steps.push(s); renderStep(s);
+  const s={x:prev.x+dir*STEP_W,y:prev.y-STEP_DY,dir:dir,
+    type:getStepType(steps.length),floor:steps.length,el:null};
+  steps.push(s);renderStep(s);
 }
-
 function renderStep(s){
   const div=document.createElement('div');
   div.className='step step-'+s.type;
-  div.style.width=STEP_RENDER_W+'px';
-  div.style.height=STEP_RENDER_H+'px';
-  div.style.left=(s.x-STEP_RENDER_W/2)+'px';
-  div.style.top=s.y+'px';
-  world.appendChild(div); s.el=div;
+  div.style.width=STEP_RENDER_W+'px';div.style.height=STEP_RENDER_H+'px';
+  div.style.left=(s.x-STEP_RENDER_W/2)+'px';div.style.top=s.y+'px';
+  world.appendChild(div);s.el=div;
 }
-
 function createHeavenGate(){
   if(heavenGateEl)return;
   const last=steps[steps.length-1];
@@ -493,27 +516,21 @@ function createHeavenGate(){
    카메라
    ================================================================ */
 function getPlayerFeetScreenY(){return window.innerHeight-BTN_HEIGHT-40;}
-
 function updateCamera(){
-  const cur=steps[score]; if(!cur)return;
+  const cur=steps[score];if(!cur)return;
   const feetY=getPlayerFeetScreenY();
-  const tx=window.innerWidth/2-cur.x;
-  const ty=feetY-cur.y;
-  world.style.transform=`translate(${tx}px,${ty}px)`;
+  world.style.transform=`translate(${window.innerWidth/2-cur.x}px,${feetY-cur.y}px)`;
 }
 
 /* ================================================================
-   캐릭터 이미지 교체 — 캐시 사용
+   캐릭터 이미지 교체
    ================================================================ */
 function setPlayerImage(pose){
-  /* pose = 'idle' | 'step' | 'fall' */
-  const def=charDefs[selectedChar];
-  const url=def[pose];
-  player.src = cached(url);
+  player.src=cached(charDefs[selectedChar][pose]);
 }
 
 /* ================================================================
-   게임 시작 / 초기화
+   게임
    ================================================================ */
 function startGame(){
   document.getElementById('titleScreen').classList.add('hidden');
@@ -523,37 +540,39 @@ function startGame(){
   document.getElementById('clearOverlay').classList.remove('active');
   document.getElementById('overOverlay').classList.remove('active');
   progressWrap.style.display=(gameMode==='story')?'block':'none';
-  initGameState(); startBGM();
+  initGameState();startBGM();
 }
 
 function initGameState(){
   gameActive=true;score=0;combo=0;maxCombo=0;
   moveDir=1;playerDir=1;elapsed=0;currentBgIdx=-1;
-  heavenGateEl=null;lastInputTime=0;
+  heavenGateEl=null;lastInputTime=0;bgTransitioning=false;
+  activeBgLayer='A';
+  bgA.style.opacity='1';bgA.style.backgroundImage='';
+  bgB.style.opacity='0';bgB.style.backgroundImage='';
+  cloudOverlay.classList.remove('active');
   world.innerHTML='';steps=[];
 
   if(storyPopupTimer)clearTimeout(storyPopupTimer);
   storyPopupEl.classList.remove('show');
 
-  const startX=window.innerWidth/2, startY=1000;
+  const startX=window.innerWidth/2,startY=1000;
   steps.push({x:startX,y:startY,dir:0,type:'normal',floor:0,el:null});
   renderStep(steps[0]);
 
   const total=(gameMode==='story')?152:AHEAD_COUNT+5;
-  for(let i=0;i<total;i++) addNewStep();
-  if(gameMode==='story') createHeavenGate();
+  for(let i=0;i<total;i++)addNewStep();
+  if(gameMode==='story')createHeavenGate();
 
-  /* 캐릭터 — 캐시된 이미지 사용 */
   setPlayerImage('idle');
-  player.style.width=PLAYER_W+'px';
-  player.style.height=PLAYER_H+'px';
+  player.style.width=PLAYER_W+'px';player.style.height=PLAYER_H+'px';
   player.style.left=(window.innerWidth/2-PLAYER_W/2)+'px';
   player.style.top=(getPlayerFeetScreenY()-PLAYER_H+CHAR_VISUAL_OFFSET)+'px';
   player.style.bottom='auto';
   player.style.transform='translateX(0) scaleX(1)';
   player.style.transition='transform .08s';
 
-  updateCamera(); updateBg(0); updateHUD();
+  updateCamera();updateBg(0);updateHUD();
 
   if(timerInterval)clearInterval(timerInterval);
   timerStart=Date.now();
@@ -566,11 +585,11 @@ function initGameState(){
 
 function updateHUD(){
   hudFloor.textContent='🏢 '+score+'층';
-  if(gameMode==='story') progressFill.style.width=Math.min(score/150*100,100)+'%';
+  if(gameMode==='story')progressFill.style.width=Math.min(score/150*100,100)+'%';
 }
 
 /* ================================================================
-   입력 처리
+   입력
    ================================================================ */
 function handleInput(action){
   if(!gameActive)return;
@@ -586,25 +605,24 @@ function handleInput(action){
 
   const nextStep=steps[nextIdx];
   let inputDir;
-
   if(action==='turn'){
-    moveDir*=-1; playerDir=moveDir; inputDir=moveDir; sfxTurn();
+    moveDir*=-1;playerDir=moveDir;inputDir=moveDir;sfxTurn();
   }else{
-    inputDir=moveDir; sfxJump();
+    inputDir=moveDir;sfxJump();
   }
 
   if(inputDir===nextStep.dir){
-    score++; combo++;
+    score++;combo++;
     if(combo>maxCombo)maxCombo=combo;
     if(combo>=5&&combo%5===0){sfxCombo();showCombo(combo);}
 
     player.style.transform=`translateX(0) scaleX(${playerDir})`;
     setPlayerImage('step');
 
-    updateCamera(); updateBg(score); updateHUD();
+    updateCamera();updateBg(score);updateHUD();
 
     if(gameMode==='infinite'){
-      while(steps.length-score<AHEAD_COUNT+3) addNewStep();
+      while(steps.length-score<AHEAD_COUNT+3)addNewStep();
       if(score>10){
         const old=steps[score-10];
         if(old&&old.el&&old.el.parentNode){old.el.parentNode.removeChild(old.el);old.el=null;}
@@ -617,24 +635,142 @@ function handleInput(action){
       setTimeout(()=>gameClear(),300);return;
     }
 
-    setTimeout(()=>{if(gameActive) setPlayerImage('idle');},80);
+    setTimeout(()=>{if(gameActive)setPlayerImage('idle');},80);
   }else{
-    combo=0; gameOver();
+    combo=0;gameOver();
   }
 }
 
 /* ================================================================
-   콤보
+   콤보 / 스토리
    ================================================================ */
 function showCombo(c){
   comboPopup.textContent=`🔥 ${c} COMBO!`;
   comboPopup.style.opacity='1';
   setTimeout(()=>{comboPopup.style.opacity='0';},1000);
 }
-
-/* ================================================================
-   스토리 메시지 — 비차단, 자연스럽게 표시/소멸
-   ================================================================ */
 function checkStoryMessage(floor){
   if(gameMode!=='story')return;
-  const
+  const msg=storyMessages.find(m=>m.floor===floor);
+  if(!msg)return;showStoryPopup(msg.text,msg.verse);
+}
+function showStoryPopup(text,verse){
+  if(storyPopupTimer)clearTimeout(storyPopupTimer);
+  document.getElementById('storyText').textContent=text;
+  document.getElementById('storyVerse').textContent=verse;
+  storyPopupEl.classList.add('show');
+  storyPopupTimer=setTimeout(()=>{
+    storyPopupEl.classList.remove('show');storyPopupTimer=null;
+  },3000);
+}
+
+/* ================================================================
+   게임 오버 / 클리어
+   ================================================================ */
+function gameOver(){
+  gameActive=false;sfxFail();stopBGM();
+  if(timerInterval)clearInterval(timerInterval);
+  setPlayerImage('fall');
+  player.style.transition='top .6s ease-in';
+  player.style.top=(window.innerHeight+50)+'px';
+  setTimeout(()=>{
+    player.style.transition='';
+    document.getElementById('overInfo').textContent=
+      `🏢 ${score}층 도달 | ⏱ ${elapsed.toFixed(1)}초 | 🔥 최대콤보 ${maxCombo}`;
+    document.getElementById('overOverlay').classList.add('active');
+  },700);
+}
+function gameClear(){
+  gameActive=false;sfxClear();stopBGM();
+  if(timerInterval)clearInterval(timerInterval);
+  setTimeout(()=>{
+    document.getElementById('clearInfo').textContent=
+      `🏢 150층 완료! | ⏱ ${elapsed.toFixed(1)}초 | 🔥 최대콤보 ${maxCombo}`;
+    document.getElementById('clearOverlay').classList.add('active');
+  },500);
+}
+
+/* ================================================================
+   재시작 / 타이틀
+   ================================================================ */
+function restartGame(){
+  ['clearOverlay','overOverlay','rankScreen'].forEach(id=>
+    document.getElementById(id).classList.remove('active'));
+  initGameState();startBGM();
+}
+function goTitle(){
+  gameActive=false;stopBGM();
+  if(timerInterval)clearInterval(timerInterval);
+  ['clearOverlay','overOverlay','rankScreen'].forEach(id=>
+    document.getElementById(id).classList.remove('active'));
+  document.getElementById('game-view').classList.remove('active');
+  hud.classList.remove('active');
+  document.getElementById('buttons').classList.remove('active');
+  document.getElementById('titleScreen').classList.remove('hidden');
+  currentBgIdx=-1;
+}
+
+/* ================================================================
+   순위
+   ================================================================ */
+function getScores(mode){
+  try{return JSON.parse(localStorage.getItem('moohan_'+mode))||[];}catch(e){return[];}
+}
+function saveScore(mode,name,floor,time){
+  const scores=getScores(mode);
+  scores.push({name,floor,time,date:new Date().toLocaleDateString()});
+  scores.sort((a,b)=>b.floor-a.floor||a.time-b.time);
+  localStorage.setItem('moohan_'+mode,JSON.stringify(scores.slice(0,50)));
+}
+function saveAndShow(mode){
+  const isClr=document.getElementById('clearOverlay').classList.contains('active');
+  const inp=isClr?document.getElementById('clearName'):document.getElementById('overName');
+  const name=inp.value.trim()||'무명용사';
+  saveScore(mode,name,score,parseFloat(elapsed.toFixed(1)));
+  inp.value='';
+  document.getElementById('clearOverlay').classList.remove('active');
+  document.getElementById('overOverlay').classList.remove('active');
+  showRanking(mode);
+}
+let currentRankTab='story';
+function showRanking(mode){
+  currentRankTab=mode||'story';
+  document.getElementById('rankScreen').classList.add('active');
+  document.querySelectorAll('.rank-tab').forEach(t=>{
+    t.classList.remove('active');
+    if((currentRankTab==='story'&&t.textContent.includes('여정'))||
+       (currentRankTab==='infinite'&&t.textContent.includes('무한')))
+      t.classList.add('active');
+  });
+  renderRank(currentRankTab);
+}
+function switchRankTab(mode,btn){
+  currentRankTab=mode;
+  document.querySelectorAll('.rank-tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');renderRank(mode);
+}
+function renderRank(mode){
+  const scores=getScores(mode);
+  const body=document.getElementById('rankBody');
+  if(!scores.length){
+    body.innerHTML='<p style="text-align:center;color:#999;margin-top:30px;">아직 기록이 없습니다</p>';return;
+  }
+  let html='<table class="rank-table"><thead><tr><th>#</th><th>이름</th><th>층</th><th>시간</th><th>날짜</th></tr></thead><tbody>';
+  scores.forEach((s,i)=>{
+    const m=i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1);
+    html+=`<tr><td>${m}</td><td>${s.name}</td><td>${s.floor}</td><td>${s.time}s</td><td>${s.date||''}</td></tr>`;
+  });
+  body.innerHTML=html+'</tbody></table>';
+}
+function closeRanking(){
+  document.getElementById('rankScreen').classList.remove('active');
+  if(!gameActive){
+    document.getElementById('game-view').classList.remove('active');
+    hud.classList.remove('active');
+    document.getElementById('buttons').classList.remove('active');
+    document.getElementById('titleScreen').classList.remove('hidden');
+  }
+}
+</script>
+</body>
+</html>
