@@ -8,26 +8,23 @@
 *{margin:0;padding:0;box-sizing:border-box;}
 html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-serif;background:#000;touch-action:none;user-select:none;}
 
-/* ── 로딩 ── */
 #loadScreen{position:fixed;inset:0;z-index:9999;background:#0a0520;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;font-size:18px;transition:opacity .5s;}
 #loadScreen.hidden{opacity:0;pointer-events:none;}
 #loadBar{width:60%;height:14px;background:#222;border-radius:7px;margin-top:16px;overflow:hidden;}
 #loadFill{width:0%;height:100%;background:linear-gradient(90deg,#ffd740,#ff9800);border-radius:7px;transition:width .2s;}
+#loadText{margin-top:10px;font-size:13px;color:#aaa;}
 
-/* ── 타이틀 ── */
 #titleScreen{position:fixed;inset:0;z-index:100;background:linear-gradient(180deg,#0a0520 0%,#1a0a3e 50%,#2d1b69 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;}
 #titleScreen.hidden{display:none;}
 .title-main{font-size:32px;font-weight:900;text-shadow:0 0 20px rgba(255,215,64,.6);margin-bottom:6px;text-align:center;}
 .title-sub{font-size:14px;color:#ccc;margin-bottom:24px;}
 .title-btn{display:block;width:220px;padding:14px;margin:6px auto;border:2px solid #ffd740;border-radius:12px;background:rgba(255,215,64,.12);color:#ffd740;font-size:16px;font-weight:700;cursor:pointer;text-align:center;}
 .title-btn:active{background:rgba(255,215,64,.3);}
-.title-btn:disabled{opacity:.4;}
 .char-select{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin:18px 0;}
 .char-btn{width:90px;padding:10px 4px;border:2px solid #555;border-radius:10px;background:rgba(255,255,255,.06);color:#fff;font-size:12px;cursor:pointer;text-align:center;}
 .char-btn img{width:48px;height:60px;image-rendering:pixelated;display:block;margin:0 auto 4px;}
 .char-btn.selected{border-color:#ffd740;background:rgba(255,215,64,.15);}
 
-/* ── 게임 뷰 ── */
 #game-view{position:fixed;inset:0;display:none;z-index:10;}
 #game-view.active{display:block;}
 
@@ -43,7 +40,6 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
 
 #player{position:fixed;z-index:5;image-rendering:pixelated;pointer-events:none;transition:transform .08s;}
 
-/* HUD */
 #hud{position:fixed;top:8px;left:8px;right:8px;z-index:50;display:none;color:#fff;font-size:14px;}
 #hud.active{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;}
 .hud-item{background:rgba(0,0,0,.5);padding:4px 10px;border-radius:8px;font-weight:700;}
@@ -51,7 +47,6 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
 #progressFill{height:100%;width:0%;background:linear-gradient(90deg,#ffd740,#ff9800);border-radius:5px;transition:width .3s;}
 #bgLabel{position:fixed;top:42px;left:50%;transform:translateX(-50%);z-index:50;color:#ffd740;font-size:13px;font-weight:700;text-shadow:0 0 8px rgba(0,0,0,.7);opacity:0;transition:opacity .5s;}
 
-/* 버튼 */
 #buttons{position:fixed;bottom:0;left:0;right:0;height:130px;z-index:60;display:none;gap:0;}
 #buttons.active{display:flex;}
 .btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border:none;font-size:18px;font-weight:700;cursor:pointer;color:#fff;-webkit-tap-highlight-color:transparent;}
@@ -60,12 +55,10 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
 .btn:active{filter:brightness(1.4);}
 .btn-icon{font-size:26px;margin-bottom:4px;}
 
-/* 스토리 팝업 - 게임을 멈추지 않고 자연스럽게 */
 #storyPopup{position:fixed;top:15%;left:50%;transform:translateX(-50%);z-index:70;background:rgba(0,0,0,.75);color:#fff;padding:16px 18px;border-radius:14px;border:1px solid rgba(255,215,64,.4);max-width:300px;text-align:center;font-size:14px;line-height:1.5;pointer-events:none;opacity:0;transition:opacity .6s ease-in-out;}
 #storyPopup.show{opacity:1;}
 #storyPopup .verse{color:#ffd740;font-size:11px;margin-top:8px;}
 
-/* 오버레이 */
 .overlay{position:fixed;inset:0;z-index:300;display:none;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,0,0,.85);color:#fff;text-align:center;padding:20px;}
 .overlay.active{display:flex;}
 .ov-title{font-size:28px;font-weight:900;margin-bottom:10px;}
@@ -75,9 +68,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
 .ov-btn-save{background:#ffd740;color:#000;}
 .ov-btn-restart{background:#4caf50;}
 .ov-btn-title{background:#555;}
-.ov-btn-rank{background:#2196f3;}
 
-/* 순위 */
 #rankScreen{position:fixed;inset:0;z-index:400;display:none;flex-direction:column;background:rgba(0,0,0,.92);color:#fff;padding:20px;}
 #rankScreen.active{display:flex;}
 #rankScreen h2{text-align:center;margin-bottom:12px;color:#ffd740;}
@@ -103,6 +94,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
 <div id="loadScreen">
   <div>리소스 로딩 중...</div>
   <div id="loadBar"><div id="loadFill"></div></div>
+  <div id="loadText"></div>
 </div>
 
 <div id="titleScreen" class="hidden">
@@ -168,171 +160,157 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
 /* ================================================================
    상수
    ================================================================ */
-const STEP_W = 55;
-const STEP_DY = 48;
-const STEP_RENDER_W = 80;
-const STEP_RENDER_H = 28;
-const PLAYER_W = 120;
-const PLAYER_H = 150;
-const CHAR_VISUAL_OFFSET = 20;
-const BTN_HEIGHT = 130;
-const AHEAD_COUNT = 6;
-const INPUT_COOLDOWN = 150; // ms — 입력 쿨다운으로 연타 방지
+const STEP_W=55, STEP_DY=48, STEP_RENDER_W=80, STEP_RENDER_H=28;
+const PLAYER_W=120, PLAYER_H=150, CHAR_VISUAL_OFFSET=20;
+const BTN_HEIGHT=130, AHEAD_COUNT=6, INPUT_COOLDOWN=150;
 
-/* ── 배경 ── */
-const BG_URLS = [
+/* ── 배경 URL ── */
+const BG_URLS=[
   'https://www.dropbox.com/scl/fi/imtfk93fd0929t08v18mi/1.jpeg?rlkey=3zgjyqcfa63yoknkxj0a2qjqo&st=m5gi2y6m&raw=1',
   'https://www.dropbox.com/scl/fi/47tfv96xudau14lsgltf3/2.jpg?rlkey=aouwvp38cdi7k51rwxzfrtw4f&st=uwbbj06o&raw=1',
   'https://www.dropbox.com/scl/fi/mncrya2p856gf36jvwog3/3.jpg?rlkey=ujzz7tgyp421n8g94787y9lvr&st=alfdnzw5&raw=1',
   'https://www.dropbox.com/scl/fi/gbnp9lv81p7cwev506ow6/4.jpg?rlkey=8rbenlupep5v7jz7hrgiu3fzo&st=p1b03c9b&raw=1',
   'https://www.dropbox.com/scl/fi/t08wr4l0cwufoy9oyfbbq/5.jpg?rlkey=as3jhza1ws44v0ziwdnl9544e&st=jnco2k99&raw=1'
 ];
-const bgImages = [];
 
-/* ── 캐릭터 ── */
-const charDefs = {
-  pastor: {
-    name: '목사님',
-    idle: 'https://i.postimg.cc/NMxfDbBK/idle.png',
-    step: 'https://i.postimg.cc/xCPT5gnc/step.png',
-    fall: 'https://i.postimg.cc/cHc4hT0K/fall.png'
-  },
-  elder: {
-    name: '장로님',
-    idle: 'https://www.dropbox.com/scl/fi/nqu80bsmpsbqefkn36xpu/jang1.png?rlkey=qzcu6k1qvp6ye9adsdveheveq&st=82ze4o0q&raw=1',
-    step: 'https://www.dropbox.com/scl/fi/rdnljw3xpq5ajzhyt0a4i/jang2.png?rlkey=21dregwfmdywe72kiqqg1zb6d&st=9w0t7jws&raw=1',
-    fall: 'https://www.dropbox.com/scl/fi/kpdmnwbps8fzi4mvksqaq/jang3.png?rlkey=0lu6ysqhpuneups46aum5hvqv&st=twcji63c&raw=1'
-  },
-  boy: {
-    name: '신광이',
-    idle: 'https://www.dropbox.com/scl/fi/oopz5u34b3a5w357a0vgn/boy1.png?rlkey=51hz3lajs761980cosmu12pvg&st=o6ne4aqg&raw=1',
-    step: 'https://www.dropbox.com/scl/fi/4b5m7dbamzlv70u9gc5e7/boy2.png?rlkey=sxmu9eiux6jriefc1ot30myja&st=37diwiji&raw=1',
-    fall: 'https://www.dropbox.com/scl/fi/74e3pvp8wjtafrusfy0xt/boy3.png?rlkey=etgdpw6x2kmv3xsl8njuekoad&st=vyxiycjv&raw=1'
-  },
-  girl: {
-    name: '새빛이',
-    idle: 'https://www.dropbox.com/scl/fi/d42i9udz3os1zzbl0zx25/girl1.png?rlkey=wn7e2mn0gygzsh3rp9fb1lekk&st=eh1cxct4&raw=1',
-    step: 'https://www.dropbox.com/scl/fi/htxih9x5j5gtt9eic57qx/girl2.png?rlkey=7u8rxj1dcxsdi2w5ylcd5o4f5&st=qv29xjrd&raw=1',
-    fall: 'https://www.dropbox.com/scl/fi/0j3ehsned8alxsuuykr3e/girl3.png?rlkey=tfphy1v3m9l9ezl3vhlar96s8&st=i79cxs15&raw=1'
-  }
+/* ── 캐릭터 URL ── */
+const charDefs={
+  pastor:{name:'목사님',
+    idle:'https://i.postimg.cc/NMxfDbBK/idle.png',
+    step:'https://i.postimg.cc/xCPT5gnc/step.png',
+    fall:'https://i.postimg.cc/cHc4hT0K/fall.png'},
+  elder:{name:'장로님',
+    idle:'https://www.dropbox.com/scl/fi/nqu80bsmpsbqefkn36xpu/jang1.png?rlkey=qzcu6k1qvp6ye9adsdveheveq&st=82ze4o0q&raw=1',
+    step:'https://www.dropbox.com/scl/fi/rdnljw3xpq5ajzhyt0a4i/jang2.png?rlkey=21dregwfmdywe72kiqqg1zb6d&st=9w0t7jws&raw=1',
+    fall:'https://www.dropbox.com/scl/fi/kpdmnwbps8fzi4mvksqaq/jang3.png?rlkey=0lu6ysqhpuneups46aum5hvqv&st=twcji63c&raw=1'},
+  boy:{name:'신광이',
+    idle:'https://www.dropbox.com/scl/fi/oopz5u34b3a5w357a0vgn/boy1.png?rlkey=51hz3lajs761980cosmu12pvg&st=o6ne4aqg&raw=1',
+    step:'https://www.dropbox.com/scl/fi/4b5m7dbamzlv70u9gc5e7/boy2.png?rlkey=sxmu9eiux6jriefc1ot30myja&st=37diwiji&raw=1',
+    fall:'https://www.dropbox.com/scl/fi/74e3pvp8wjtafrusfy0xt/boy3.png?rlkey=etgdpw6x2kmv3xsl8njuekoad&st=vyxiycjv&raw=1'},
+  girl:{name:'새빛이',
+    idle:'https://www.dropbox.com/scl/fi/d42i9udz3os1zzbl0zx25/girl1.png?rlkey=wn7e2mn0gygzsh3rp9fb1lekk&st=eh1cxct4&raw=1',
+    step:'https://www.dropbox.com/scl/fi/htxih9x5j5gtt9eic57qx/girl2.png?rlkey=7u8rxj1dcxsdi2w5ylcd5o4f5&st=qv29xjrd&raw=1',
+    fall:'https://www.dropbox.com/scl/fi/0j3ehsned8alxsuuykr3e/girl3.png?rlkey=tfphy1v3m9l9ezl3vhlar96s8&st=i79cxs15&raw=1'}
 };
 
+/* ================================================================
+   이미지 캐시 — 핵심 수정!
+   모든 이미지를 Data URL로 변환해 캐시.
+   이후 src 교체 시 네트워크 없이 즉시 표시됨.
+   ================================================================ */
+const imageCache = {}; // key: 원본URL → value: dataURL 또는 원본URL
+
+function cacheImageAsDataURL(url){
+  return new Promise(resolve=>{
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = ()=>{
+      try {
+        const c = document.createElement('canvas');
+        c.width = img.naturalWidth;
+        c.height = img.naturalHeight;
+        const ctx = c.getContext('2d');
+        ctx.drawImage(img,0,0);
+        const dataURL = c.toDataURL('image/png');
+        imageCache[url] = dataURL;
+      } catch(e){
+        /* CORS 실패 시 원본 URL 그대로 사용 */
+        imageCache[url] = url;
+      }
+      resolve();
+    };
+    img.onerror = ()=>{
+      imageCache[url] = url;
+      resolve();
+    };
+    img.src = url;
+  });
+}
+
+/* 캐시된 URL을 가져오는 헬퍼 */
+function cached(url){
+  return imageCache[url] || url;
+}
+
 /* ── 스토리 메시지 ── */
-const storyMessages = [
-  {floor:1,   text:'교회에서 첫 발을 내딛습니다.',              verse:'히브리서 11:1 — 믿음은 바라는 것들의 실상이요'},
-  {floor:15,  text:'새벽기도의 시간… 어둠 속에서 빛을 찾습니다.', verse:'시편 119:105 — 주의 말씀은 내 발에 등이요'},
-  {floor:30,  text:'시련의 바다가 앞에 펼쳐집니다.',             verse:'이사야 43:2 — 물 가운데로 지날 때에 내가 함께하리니'},
-  {floor:50,  text:'깊은 파도 속에서도 믿음을 지킵니다.',         verse:'마태복음 14:31 — 믿음이 적은 자여 왜 의심하였느냐'},
-  {floor:60,  text:'광야의 길이 시작됩니다.',                    verse:'신명기 8:2 — 광야의 길을 기억하라'},
-  {floor:90,  text:'연단의 불 가운데를 지나갑니다.',              verse:'이사야 48:10 — 내가 너를 연단하였노라'},
-  {floor:110, text:'시련을 이기고 빛이 보이기 시작합니다.',        verse:'로마서 8:28 — 모든 것이 합력하여 선을 이루느니라'},
-  {floor:130, text:'거의 다 왔습니다! 천국의 빛이 가까이…',       verse:'빌립보서 3:14 — 푯대를 향하여 달려가노라'},
-  {floor:145, text:'영광의 문 앞에 섰습니다!',                   verse:'요한계시록 21:4 — 다시는 사망이 없고 슬픔도 없으리라'}
+const storyMessages=[
+  {floor:1,text:'교회에서 첫 발을 내딛습니다.',verse:'히브리서 11:1 — 믿음은 바라는 것들의 실상이요'},
+  {floor:15,text:'새벽기도의 시간… 어둠 속에서 빛을 찾습니다.',verse:'시편 119:105 — 주의 말씀은 내 발에 등이요'},
+  {floor:30,text:'시련의 바다가 앞에 펼쳐집니다.',verse:'이사야 43:2 — 물 가운데로 지날 때에 내가 함께하리니'},
+  {floor:50,text:'깊은 파도 속에서도 믿음을 지킵니다.',verse:'마태복음 14:31 — 믿음이 적은 자여 왜 의심하였느냐'},
+  {floor:60,text:'광야의 길이 시작됩니다.',verse:'신명기 8:2 — 광야의 길을 기억하라'},
+  {floor:90,text:'연단의 불 가운데를 지나갑니다.',verse:'이사야 48:10 — 내가 너를 연단하였노라'},
+  {floor:110,text:'시련을 이기고 빛이 보이기 시작합니다.',verse:'로마서 8:28 — 모든 것이 합력하여 선을 이루느니라'},
+  {floor:130,text:'거의 다 왔습니다! 천국의 빛이 가까이…',verse:'빌립보서 3:14 — 푯대를 향하여 달려가노라'},
+  {floor:145,text:'영광의 문 앞에 섰습니다!',verse:'요한계시록 21:4 — 다시는 사망이 없고 슬픔도 없으리라'}
 ];
 
 /* ── 게임 상태 ── */
-let gameMode = 'story';
-let selectedChar = 'pastor';
-let gameActive = false;
-let score = 0;
-let combo = 0;
-let maxCombo = 0;
-let steps = [];
-let moveDir = 1;
-let playerDir = 1;
-let timerStart = 0;
-let timerInterval = null;
-let elapsed = 0;
-let currentBgIdx = -1;
-let heavenGateEl = null;
-let lastInputTime = 0;       // 연타 방지용 타임스탬프
-let storyPopupTimer = null;  // 스토리 팝업 타이머
+let gameMode='story',selectedChar='pastor',gameActive=false;
+let score=0,combo=0,maxCombo=0;
+let steps=[],moveDir=1,playerDir=1;
+let timerStart=0,timerInterval=null,elapsed=0;
+let currentBgIdx=-1,heavenGateEl=null;
+let lastInputTime=0,storyPopupTimer=null;
 
 /* ── DOM ── */
-const world        = document.getElementById('world');
-const player       = document.getElementById('player');
-const bgLayer      = document.getElementById('bg-layer');
-const bgLabel      = document.getElementById('bgLabel');
-const hud          = document.getElementById('hud');
-const hudFloor     = document.getElementById('hudFloor');
-const hudTime      = document.getElementById('hudTime');
-const progressWrap = document.getElementById('progressWrap');
-const progressFill = document.getElementById('progressFill');
-const comboPopup   = document.getElementById('comboPopup');
-const storyPopupEl = document.getElementById('storyPopup');
+const world=document.getElementById('world');
+const player=document.getElementById('player');
+const bgLayer=document.getElementById('bg-layer');
+const bgLabel=document.getElementById('bgLabel');
+const hud=document.getElementById('hud');
+const hudFloor=document.getElementById('hudFloor');
+const hudTime=document.getElementById('hudTime');
+const progressWrap=document.getElementById('progressWrap');
+const progressFill=document.getElementById('progressFill');
+const comboPopup=document.getElementById('comboPopup');
+const storyPopupEl=document.getElementById('storyPopup');
 
 /* ================================================================
-   입력 이벤트 — 터치/마우스 중복 방지
+   프리로드 — Data URL 캐시 포함
    ================================================================ */
-(function setupButtons(){
-  const btnTurn = document.getElementById('btnTurn');
-  const btnFwd  = document.getElementById('btnForward');
-
-  /* 터치 우선. touchstart가 발생하면 플래그를 세워서
-     직후의 mousedown을 무시한다. */
-  let touchHandled = false;
-
-  function onTurn(e){
-    e.preventDefault();
-    handleInput('turn');
-  }
-  function onFwd(e){
-    e.preventDefault();
-    handleInput('forward');
-  }
-
-  btnTurn.addEventListener('touchstart', function(e){
-    touchHandled = true;
-    onTurn(e);
-  }, {passive:false});
-  btnTurn.addEventListener('mousedown', function(e){
-    if(touchHandled){ touchHandled=false; return; }
-    onTurn(e);
+async function preloadAllAssets(onProgress, onDone){
+  /* 모든 캐릭터 이미지 URL 수집 */
+  const charUrls=[];
+  Object.values(charDefs).forEach(c=>{
+    charUrls.push(c.idle, c.step, c.fall);
   });
 
-  btnFwd.addEventListener('touchstart', function(e){
-    touchHandled = true;
-    onFwd(e);
-  }, {passive:false});
-  btnFwd.addEventListener('mousedown', function(e){
-    if(touchHandled){ touchHandled=false; return; }
-    onFwd(e);
-  });
-
-  /* 터치 플래그 리셋 — 화면 아무데나 touchend 시 */
-  document.addEventListener('touchend', function(){
-    setTimeout(()=>{ touchHandled=false; }, 300);
-  });
-})();
-
-/* 키보드 */
-document.addEventListener('keydown', function(e){
-  if(e.key==='ArrowLeft'||e.key==='a') handleInput('turn');
-  else if(e.key==='ArrowRight'||e.key==='d'||e.key==='ArrowUp'||e.key==='w') handleInput('forward');
-});
-
-/* ================================================================
-   프리로드
-   ================================================================ */
-function preloadAllAssets(onProgress, onDone){
-  const allUrls = [];
-  Object.values(charDefs).forEach(c=>{ allUrls.push(c.idle,c.step,c.fall); });
-  BG_URLS.forEach(u=> allUrls.push(u));
+  const allUrls = [...charUrls, ...BG_URLS];
   const total = allUrls.length;
   let loaded = 0;
-  function tick(){
-    loaded++;
-    if(onProgress) onProgress(loaded,total);
-    if(loaded>=total && onDone) onDone();
-  }
-  allUrls.forEach((url,i)=>{
-    const img = new Image();
-    img.crossOrigin='anonymous';
-    img.onload=tick; img.onerror=tick;
-    img.src=url;
-    const bgStartIdx = total - BG_URLS.length;
-    if(i>=bgStartIdx) bgImages[i-bgStartIdx]=img;
+  const loadText = document.getElementById('loadText');
+
+  /* 캐릭터 이미지는 Data URL로 캐시 (빠른 전환을 위해) */
+  const promises = allUrls.map((url, i)=>{
+    return new Promise(resolve=>{
+      if(i < charUrls.length){
+        /* 캐릭터 → Data URL 캐시 시도 */
+        cacheImageAsDataURL(url).then(()=>{
+          loaded++;
+          if(onProgress) onProgress(loaded, total);
+          if(loadText) loadText.textContent = `${loaded}/${total}`;
+          resolve();
+        });
+      } else {
+        /* 배경 → 일반 프리로드 */
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        const done = ()=>{
+          loaded++;
+          if(onProgress) onProgress(loaded, total);
+          if(loadText) loadText.textContent = `${loaded}/${total}`;
+          resolve();
+        };
+        img.onload = done;
+        img.onerror = done;
+        img.src = url;
+      }
+    });
   });
+
+  await Promise.all(promises);
+  if(onDone) onDone();
 }
 
 window.addEventListener('load',()=>{
@@ -350,6 +328,38 @@ window.addEventListener('load',()=>{
 });
 
 /* ================================================================
+   입력 이벤트 — 터치/마우스 중복 방지
+   ================================================================ */
+(function setupButtons(){
+  const btnTurn=document.getElementById('btnTurn');
+  const btnFwd=document.getElementById('btnForward');
+  let touchHandled=false;
+
+  btnTurn.addEventListener('touchstart',function(e){
+    e.preventDefault(); touchHandled=true; handleInput('turn');
+  },{passive:false});
+  btnTurn.addEventListener('mousedown',function(e){
+    if(touchHandled){touchHandled=false;return;} handleInput('turn');
+  });
+
+  btnFwd.addEventListener('touchstart',function(e){
+    e.preventDefault(); touchHandled=true; handleInput('forward');
+  },{passive:false});
+  btnFwd.addEventListener('mousedown',function(e){
+    if(touchHandled){touchHandled=false;return;} handleInput('forward');
+  });
+
+  document.addEventListener('touchend',function(){
+    setTimeout(()=>{touchHandled=false;},300);
+  });
+})();
+
+document.addEventListener('keydown',function(e){
+  if(e.key==='ArrowLeft'||e.key==='a') handleInput('turn');
+  else if(e.key==='ArrowRight'||e.key==='d'||e.key==='ArrowUp'||e.key==='w') handleInput('forward');
+});
+
+/* ================================================================
    타이틀 & 캐릭터 선택
    ================================================================ */
 function buildCharSelect(){
@@ -360,7 +370,8 @@ function buildCharSelect(){
   Object.entries(charDefs).forEach(([key,def])=>{
     const btn=document.createElement('button');
     btn.className='char-btn'+(key===selectedChar?' selected':'');
-    btn.innerHTML=`<img src="${def.idle}"><span>${def.name}</span>`;
+    /* 캐시된 이미지 사용 */
+    btn.innerHTML=`<img src="${cached(def.idle)}"><span>${def.name}</span>`;
     btn.onclick=()=>{
       selectedChar=key;
       wrap.querySelectorAll('.char-btn').forEach(b=>b.classList.remove('selected'));
@@ -371,10 +382,7 @@ function buildCharSelect(){
   area.appendChild(wrap);
 }
 
-function selectMode(mode){
-  gameMode=mode;
-  startGame();
-}
+function selectMode(mode){gameMode=mode;startGame();}
 
 /* ================================================================
    배경
@@ -399,13 +407,12 @@ function updateBg(floor){
   const segSize=maxF/5;
   const segStart=phase.idx*segSize;
   const localP=Math.min((floor-segStart)/segSize,1);
-  const scrollY=30+localP*40;
-  bgLayer.style.backgroundPosition=`center ${scrollY}%`;
+  bgLayer.style.backgroundPosition=`center ${30+localP*40}%`;
 
   bgLabel.textContent=phase.label;
   bgLabel.style.opacity='1';
   clearTimeout(bgLabel._tid);
-  bgLabel._tid=setTimeout(()=>{ bgLabel.style.opacity='0'; },2000);
+  bgLabel._tid=setTimeout(()=>{bgLabel.style.opacity='0';},2000);
 }
 
 /* ================================================================
@@ -416,8 +423,8 @@ function ensureAudio(){if(!audioCtx)audioCtx=new(window.AudioContext||window.web
 function playTone(freq,dur,type,vol){
   ensureAudio();
   const o=audioCtx.createOscillator(),g=audioCtx.createGain();
-  o.type=type||'square'; o.frequency.value=freq;
-  g.gain.value=vol||.08; g.gain.linearRampToValueAtTime(0,audioCtx.currentTime+dur);
+  o.type=type||'square';o.frequency.value=freq;
+  g.gain.value=vol||.08;g.gain.linearRampToValueAtTime(0,audioCtx.currentTime+dur);
   o.connect(g);g.connect(audioCtx.destination);o.start();o.stop(audioCtx.currentTime+dur);
 }
 function sfxJump(){playTone(520,.1,'square',.07);setTimeout(()=>playTone(680,.08,'square',.05),50);}
@@ -444,29 +451,21 @@ function stopBGM(){if(bgmInterval)clearInterval(bgmInterval);}
 function getStepType(floor){
   if(gameMode==='story'){
     const p=floor/150;
-    if(p>.85) return 'gold';
-    if(p>.6&&Math.random()<.25) return 'fire';
-    if(p>.4&&Math.random()<.2) return 'dark';
-    if(p>.2&&Math.random()<.2) return 'ice';
-  } else {
-    if(floor>100&&Math.random()<.15) return 'gold';
-    if(floor>60&&Math.random()<.2) return 'fire';
-    if(floor>30&&Math.random()<.2) return 'dark';
-    if(floor>10&&Math.random()<.2) return 'ice';
+    if(p>.85)return'gold';if(p>.6&&Math.random()<.25)return'fire';
+    if(p>.4&&Math.random()<.2)return'dark';if(p>.2&&Math.random()<.2)return'ice';
+  }else{
+    if(floor>100&&Math.random()<.15)return'gold';if(floor>60&&Math.random()<.2)return'fire';
+    if(floor>30&&Math.random()<.2)return'dark';if(floor>10&&Math.random()<.2)return'ice';
   }
-  return 'normal';
+  return'normal';
 }
 
 function addNewStep(){
   const prev=steps[steps.length-1];
   const dir=Math.random()<.5?-1:1;
-  const nx=prev.x+dir*STEP_W;
-  const ny=prev.y-STEP_DY;
-  const floor=steps.length;
-  const type=getStepType(floor);
-  const s={x:nx,y:ny,dir:dir,type:type,floor:floor,el:null};
-  steps.push(s);
-  renderStep(s);
+  const s={x:prev.x+dir*STEP_W, y:prev.y-STEP_DY, dir:dir,
+           type:getStepType(steps.length), floor:steps.length, el:null};
+  steps.push(s); renderStep(s);
 }
 
 function renderStep(s){
@@ -476,11 +475,9 @@ function renderStep(s){
   div.style.height=STEP_RENDER_H+'px';
   div.style.left=(s.x-STEP_RENDER_W/2)+'px';
   div.style.top=s.y+'px';
-  world.appendChild(div);
-  s.el=div;
+  world.appendChild(div); s.el=div;
 }
 
-/* ── 천국 게이트 ── */
 function createHeavenGate(){
   if(heavenGateEl)return;
   const last=steps[steps.length-1];
@@ -488,25 +485,31 @@ function createHeavenGate(){
   heavenGateEl.className='heaven-gate';
   heavenGateEl.style.left=(last.x-100)+'px';
   heavenGateEl.style.top=(last.y-140)+'px';
-  heavenGateEl.innerHTML=`<div class="gate-glow">🕊️</div><div class="gate-text">천국의 문</div>`;
+  heavenGateEl.innerHTML='<div class="gate-glow">🕊️</div><div class="gate-text">천국의 문</div>';
   world.appendChild(heavenGateEl);
 }
 
 /* ================================================================
    카메라
    ================================================================ */
-function getPlayerFeetScreenY(){
-  return window.innerHeight - BTN_HEIGHT - 40;
-}
+function getPlayerFeetScreenY(){return window.innerHeight-BTN_HEIGHT-40;}
 
 function updateCamera(){
-  const cur=steps[score];
-  if(!cur)return;
+  const cur=steps[score]; if(!cur)return;
   const feetY=getPlayerFeetScreenY();
-  const centerX=window.innerWidth/2;
-  const tx=centerX-cur.x;
+  const tx=window.innerWidth/2-cur.x;
   const ty=feetY-cur.y;
   world.style.transform=`translate(${tx}px,${ty}px)`;
+}
+
+/* ================================================================
+   캐릭터 이미지 교체 — 캐시 사용
+   ================================================================ */
+function setPlayerImage(pose){
+  /* pose = 'idle' | 'step' | 'fall' */
+  const def=charDefs[selectedChar];
+  const url=def[pose];
+  player.src = cached(url);
 }
 
 /* ================================================================
@@ -520,51 +523,39 @@ function startGame(){
   document.getElementById('clearOverlay').classList.remove('active');
   document.getElementById('overOverlay').classList.remove('active');
   progressWrap.style.display=(gameMode==='story')?'block':'none';
-  initGameState();
-  startBGM();
+  initGameState(); startBGM();
 }
 
 function initGameState(){
-  gameActive=true;
-  score=0; combo=0; maxCombo=0;
-  moveDir=1; playerDir=1;
-  elapsed=0; currentBgIdx=-1;
-  heavenGateEl=null;
-  lastInputTime=0;
-  world.innerHTML='';
-  steps=[];
+  gameActive=true;score=0;combo=0;maxCombo=0;
+  moveDir=1;playerDir=1;elapsed=0;currentBgIdx=-1;
+  heavenGateEl=null;lastInputTime=0;
+  world.innerHTML='';steps=[];
 
-  /* 스토리 팝업 리셋 */
-  if(storyPopupTimer) clearTimeout(storyPopupTimer);
+  if(storyPopupTimer)clearTimeout(storyPopupTimer);
   storyPopupEl.classList.remove('show');
 
-  const startX=window.innerWidth/2;
-  const startY=1000;
-  const first={x:startX,y:startY,dir:0,type:'normal',floor:0,el:null};
-  steps.push(first);
-  renderStep(first);
+  const startX=window.innerWidth/2, startY=1000;
+  steps.push({x:startX,y:startY,dir:0,type:'normal',floor:0,el:null});
+  renderStep(steps[0]);
 
-  const totalSteps=(gameMode==='story')?152:AHEAD_COUNT+5;
-  for(let i=0;i<totalSteps;i++) addNewStep();
-
+  const total=(gameMode==='story')?152:AHEAD_COUNT+5;
+  for(let i=0;i<total;i++) addNewStep();
   if(gameMode==='story') createHeavenGate();
 
-  const def=charDefs[selectedChar];
-  player.src=def.idle;
+  /* 캐릭터 — 캐시된 이미지 사용 */
+  setPlayerImage('idle');
   player.style.width=PLAYER_W+'px';
   player.style.height=PLAYER_H+'px';
   player.style.left=(window.innerWidth/2-PLAYER_W/2)+'px';
-  const feetY=getPlayerFeetScreenY();
-  player.style.top=(feetY-PLAYER_H+CHAR_VISUAL_OFFSET)+'px';
+  player.style.top=(getPlayerFeetScreenY()-PLAYER_H+CHAR_VISUAL_OFFSET)+'px';
   player.style.bottom='auto';
   player.style.transform='translateX(0) scaleX(1)';
   player.style.transition='transform .08s';
 
-  updateCamera();
-  updateBg(0);
-  updateHUD();
+  updateCamera(); updateBg(0); updateHUD();
 
-  if(timerInterval) clearInterval(timerInterval);
+  if(timerInterval)clearInterval(timerInterval);
   timerStart=Date.now();
   timerInterval=setInterval(()=>{
     if(!gameActive)return;
@@ -573,30 +564,23 @@ function initGameState(){
   },100);
 }
 
-/* ================================================================
-   HUD
-   ================================================================ */
 function updateHUD(){
   hudFloor.textContent='🏢 '+score+'층';
-  if(gameMode==='story'){
-    progressFill.style.width=Math.min(score/150*100,100)+'%';
-  }
+  if(gameMode==='story') progressFill.style.width=Math.min(score/150*100,100)+'%';
 }
 
 /* ================================================================
-   핵심 입력 처리 — 쿨다운으로 연타 방지
+   입력 처리
    ================================================================ */
 function handleInput(action){
-  if(!gameActive) return;
-
-  /* ── 쿨다운 체크 ── */
-  const now = Date.now();
-  if(now - lastInputTime < INPUT_COOLDOWN) return;
-  lastInputTime = now;
+  if(!gameActive)return;
+  const now=Date.now();
+  if(now-lastInputTime<INPUT_COOLDOWN)return;
+  lastInputTime=now;
 
   const nextIdx=score+1;
   if(nextIdx>=steps.length){
-    if(gameMode==='story'&&score>=150) gameClear();
+    if(gameMode==='story'&&score>=150)gameClear();
     return;
   }
 
@@ -604,29 +588,20 @@ function handleInput(action){
   let inputDir;
 
   if(action==='turn'){
-    moveDir*=-1;
-    playerDir=moveDir;
-    inputDir=moveDir;
-    sfxTurn();
-  } else {
-    inputDir=moveDir;
-    sfxJump();
+    moveDir*=-1; playerDir=moveDir; inputDir=moveDir; sfxTurn();
+  }else{
+    inputDir=moveDir; sfxJump();
   }
 
   if(inputDir===nextStep.dir){
-    /* 성공 */
-    score++;
-    combo++;
-    if(combo>maxCombo) maxCombo=combo;
-
-    if(combo>=5&&combo%5===0){ sfxCombo(); showCombo(combo); }
+    score++; combo++;
+    if(combo>maxCombo)maxCombo=combo;
+    if(combo>=5&&combo%5===0){sfxCombo();showCombo(combo);}
 
     player.style.transform=`translateX(0) scaleX(${playerDir})`;
-    player.src=charDefs[selectedChar].step;
+    setPlayerImage('step');
 
-    updateCamera();
-    updateBg(score);
-    updateHUD();
+    updateCamera(); updateBg(score); updateHUD();
 
     if(gameMode==='infinite'){
       while(steps.length-score<AHEAD_COUNT+3) addNewStep();
@@ -639,19 +614,12 @@ function handleInput(action){
     checkStoryMessage(score);
 
     if(gameMode==='story'&&score>=150){
-      setTimeout(()=>gameClear(),300);
-      return;
+      setTimeout(()=>gameClear(),300);return;
     }
 
-    /* idle 복구 (쿨다운보다 짧게) */
-    setTimeout(()=>{
-      if(gameActive) player.src=charDefs[selectedChar].idle;
-    },80);
-
-  } else {
-    /* 실패 */
-    combo=0;
-    gameOver();
+    setTimeout(()=>{if(gameActive) setPlayerImage('idle');},80);
+  }else{
+    combo=0; gameOver();
   }
 }
 
@@ -665,157 +633,8 @@ function showCombo(c){
 }
 
 /* ================================================================
-   스토리 메시지 — 게임을 멈추지 않고 자연스럽게 표시/소멸
+   스토리 메시지 — 비차단, 자연스럽게 표시/소멸
    ================================================================ */
 function checkStoryMessage(floor){
-  if(gameMode!=='story') return;
-  const msg=storyMessages.find(m=>m.floor===floor);
-  if(!msg) return;
-  showStoryPopup(msg.text,msg.verse);
-}
-
-function showStoryPopup(text,verse){
-  /* 기존 타이머가 있으면 취소 */
-  if(storyPopupTimer) clearTimeout(storyPopupTimer);
-
-  document.getElementById('storyText').textContent=text;
-  document.getElementById('storyVerse').textContent=verse;
-
-  /* 게임은 계속 진행 — gameActive를 건드리지 않음 */
-  storyPopupEl.classList.add('show');
-
-  storyPopupTimer=setTimeout(()=>{
-    storyPopupEl.classList.remove('show');
-    storyPopupTimer=null;
-  },3000);
-}
-
-/* ================================================================
-   게임 오버 / 클리어
-   ================================================================ */
-function gameOver(){
-  gameActive=false;
-  sfxFail(); stopBGM();
-  if(timerInterval) clearInterval(timerInterval);
-
-  player.src=charDefs[selectedChar].fall;
-  player.style.transition='top .6s ease-in';
-  player.style.top=(window.innerHeight+50)+'px';
-
-  setTimeout(()=>{
-    player.style.transition='';
-    document.getElementById('overInfo').textContent=
-      `🏢 ${score}층 도달 | ⏱ ${elapsed.toFixed(1)}초 | 🔥 최대콤보 ${maxCombo}`;
-    document.getElementById('overOverlay').classList.add('active');
-  },700);
-}
-
-function gameClear(){
-  gameActive=false;
-  sfxClear(); stopBGM();
-  if(timerInterval) clearInterval(timerInterval);
-
-  setTimeout(()=>{
-    document.getElementById('clearInfo').textContent=
-      `🏢 150층 완료! | ⏱ ${elapsed.toFixed(1)}초 | 🔥 최대콤보 ${maxCombo}`;
-    document.getElementById('clearOverlay').classList.add('active');
-  },500);
-}
-
-/* ================================================================
-   재시작 / 타이틀
-   ================================================================ */
-function restartGame(){
-  document.getElementById('clearOverlay').classList.remove('active');
-  document.getElementById('overOverlay').classList.remove('active');
-  document.getElementById('rankScreen').classList.remove('active');
-  initGameState();
-  startBGM();
-}
-
-function goTitle(){
-  gameActive=false; stopBGM();
-  if(timerInterval) clearInterval(timerInterval);
-  document.getElementById('clearOverlay').classList.remove('active');
-  document.getElementById('overOverlay').classList.remove('active');
-  document.getElementById('rankScreen').classList.remove('active');
-  document.getElementById('game-view').classList.remove('active');
-  hud.classList.remove('active');
-  document.getElementById('buttons').classList.remove('active');
-  document.getElementById('titleScreen').classList.remove('hidden');
-  currentBgIdx=-1;
-}
-
-/* ================================================================
-   순위 (localStorage)
-   ================================================================ */
-function getScores(mode){
-  try{return JSON.parse(localStorage.getItem('moohan_'+mode))||[];}
-  catch(e){return[];}
-}
-
-function saveScore(mode,name,floor,time){
-  const scores=getScores(mode);
-  scores.push({name,floor,time,date:new Date().toLocaleDateString()});
-  scores.sort((a,b)=>b.floor-a.floor||a.time-b.time);
-  localStorage.setItem('moohan_'+mode,JSON.stringify(scores.slice(0,50)));
-}
-
-function saveAndShow(mode){
-  const isClr=document.getElementById('clearOverlay').classList.contains('active');
-  const inp=isClr?document.getElementById('clearName'):document.getElementById('overName');
-  const name=inp.value.trim()||'무명용사';
-  saveScore(mode,name,score,parseFloat(elapsed.toFixed(1)));
-  inp.value='';
-  document.getElementById('clearOverlay').classList.remove('active');
-  document.getElementById('overOverlay').classList.remove('active');
-  showRanking(mode);
-}
-
-let currentRankTab='story';
-function showRanking(mode){
-  currentRankTab=mode||'story';
-  document.getElementById('rankScreen').classList.add('active');
-  document.querySelectorAll('.rank-tab').forEach(t=>t.classList.remove('active'));
-  document.querySelectorAll('.rank-tab').forEach(t=>{
-    if((currentRankTab==='story'&&t.textContent.includes('여정'))||(currentRankTab==='infinite'&&t.textContent.includes('무한')))
-      t.classList.add('active');
-  });
-  renderRank(currentRankTab);
-}
-
-function switchRankTab(mode,btn){
-  currentRankTab=mode;
-  document.querySelectorAll('.rank-tab').forEach(t=>t.classList.remove('active'));
-  btn.classList.add('active');
-  renderRank(mode);
-}
-
-function renderRank(mode){
-  const scores=getScores(mode);
-  const body=document.getElementById('rankBody');
-  if(!scores.length){
-    body.innerHTML='<p style="text-align:center;color:#999;margin-top:30px;">아직 기록이 없습니다</p>';
-    return;
-  }
-  let html='<table class="rank-table"><thead><tr><th>#</th><th>이름</th><th>층</th><th>시간</th><th>날짜</th></tr></thead><tbody>';
-  scores.forEach((s,i)=>{
-    const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1);
-    html+=`<tr><td>${medal}</td><td>${s.name}</td><td>${s.floor}</td><td>${s.time}s</td><td>${s.date||''}</td></tr>`;
-  });
-  html+='</tbody></table>';
-  body.innerHTML=html;
-}
-
-function closeRanking(){
-  document.getElementById('rankScreen').classList.remove('active');
-  if(!gameActive){
-    document.getElementById('game-view').classList.remove('active');
-    hud.classList.remove('active');
-    document.getElementById('buttons').classList.remove('active');
-    document.getElementById('titleScreen').classList.remove('hidden');
-  }
-}
-</script>
-</body>
-</html>
+  if(gameMode!=='story')return;
+  const
