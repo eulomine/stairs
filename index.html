@@ -103,6 +103,20 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
 .heaven-gate .gate-glow{font-size:48px;animation:pulse 1.5s infinite;}
 .heaven-gate .gate-text{color:#ffd740;font-size:16px;font-weight:900;text-shadow:0 0 15px rgba(255,215,64,.8);}
 @keyframes pulse{0%,100%{transform:scale(1);opacity:.8;}50%{transform:scale(1.15);opacity:1;}}
+
+.my-rank-box{
+  margin-top:14px;
+  padding:12px;
+  border-radius:10px;
+  background:rgba(255,255,255,.06);
+  text-align:center;
+  font-size:14px;
+  border:1px solid rgba(255,215,64,.25);
+}
+.my-rank-box strong{
+  color:#ffd740;
+  font-size:18px;
+}
 </style>
 </head>
 <body>
@@ -228,8 +242,11 @@ let steps=[],moveDir=1,playerDir=1;
 let timerStart=0,timerInterval=null,elapsed=0;
 let currentBgIdx=-1,heavenGateEl=null;
 let lastInputTime=0,storyPopupTimer=null;
-let bgTransitioning=false; // 배경 전환 중 플래그
-let activeBgLayer='A';     // 현재 보이는 배경 레이어
+let bgTransitioning=false;
+let activeBgLayer='A';
+
+/* 마지막 저장 기록의 순위 표시용 */
+let lastSavedRankInfo=null;
 
 /* ── DOM ── */
 const world=document.getElementById('world');
@@ -258,13 +275,19 @@ function cacheImageAsDataURL(url){
     img.onload=()=>{
       try{
         const c=document.createElement('canvas');
-        c.width=img.naturalWidth;c.height=img.naturalHeight;
+        c.width=img.naturalWidth;
+        c.height=img.naturalHeight;
         c.getContext('2d').drawImage(img,0,0);
         imageCache[url]=c.toDataURL('image/png');
-      }catch(e){imageCache[url]=url;}
+      }catch(e){
+        imageCache[url]=url;
+      }
       resolve();
     };
-    img.onerror=()=>{imageCache[url]=url;resolve();};
+    img.onerror=()=>{
+      imageCache[url]=url;
+      resolve();
+    };
     img.src=url;
   });
 }
@@ -285,18 +308,27 @@ async function preloadAllAssets(onProgress,onDone){
     return new Promise(resolve=>{
       if(i<charUrls.length){
         cacheImageAsDataURL(url).then(()=>{
-          loaded++;if(onProgress)onProgress(loaded,total);
+          loaded++;
+          if(onProgress)onProgress(loaded,total);
           if(loadText)loadText.textContent=`${loaded}/${total}`;
           resolve();
         });
       }else{
-        const img=new Image();img.crossOrigin='anonymous';
-        const done=()=>{loaded++;if(onProgress)onProgress(loaded,total);
-          if(loadText)loadText.textContent=`${loaded}/${total}`;resolve();};
-        img.onload=done;img.onerror=done;img.src=url;
+        const img=new Image();
+        img.crossOrigin='anonymous';
+        const done=()=>{
+          loaded++;
+          if(onProgress)onProgress(loaded,total);
+          if(loadText)loadText.textContent=`${loaded}/${total}`;
+          resolve();
+        };
+        img.onload=done;
+        img.onerror=done;
+        img.src=url;
       }
     });
   });
+
   await Promise.all(promises);
   if(onDone)onDone();
 }
@@ -305,11 +337,13 @@ window.addEventListener('load',()=>{
   const fill=document.getElementById('loadFill');
   preloadAllAssets(
     (ld,tot)=>{fill.style.width=Math.round(ld/tot*100)+'%';},
-    ()=>{setTimeout(()=>{
-      document.getElementById('loadScreen').classList.add('hidden');
-      document.getElementById('titleScreen').classList.remove('hidden');
-      buildCharSelect();
-    },400);}
+    ()=>{
+      setTimeout(()=>{
+        document.getElementById('loadScreen').classList.add('hidden');
+        document.getElementById('titleScreen').classList.remove('hidden');
+        buildCharSelect();
+      },400);
+    }
   );
 });
 
@@ -322,17 +356,33 @@ window.addEventListener('load',()=>{
   let touchHandled=false;
 
   btnTurn.addEventListener('touchstart',function(e){
-    e.preventDefault();touchHandled=true;handleInput('turn');
+    e.preventDefault();
+    touchHandled=true;
+    handleInput('turn');
   },{passive:false});
-  btnTurn.addEventListener('mousedown',function(e){
-    if(touchHandled){touchHandled=false;return;}handleInput('turn');
+
+  btnTurn.addEventListener('mousedown',function(){
+    if(touchHandled){
+      touchHandled=false;
+      return;
+    }
+    handleInput('turn');
   });
+
   btnFwd.addEventListener('touchstart',function(e){
-    e.preventDefault();touchHandled=true;handleInput('forward');
+    e.preventDefault();
+    touchHandled=true;
+    handleInput('forward');
   },{passive:false});
-  btnFwd.addEventListener('mousedown',function(e){
-    if(touchHandled){touchHandled=false;return;}handleInput('forward');
+
+  btnFwd.addEventListener('mousedown',function(){
+    if(touchHandled){
+      touchHandled=false;
+      return;
+    }
+    handleInput('forward');
   });
+
   document.addEventListener('touchend',function(){
     setTimeout(()=>{touchHandled=false;},300);
   });
@@ -351,6 +401,7 @@ function buildCharSelect(){
   area.innerHTML='';
   const wrap=document.createElement('div');
   wrap.className='char-select';
+
   Object.entries(charDefs).forEach(([key,def])=>{
     const btn=document.createElement('button');
     btn.className='char-btn'+(key===selectedChar?' selected':'');
@@ -362,9 +413,13 @@ function buildCharSelect(){
     };
     wrap.appendChild(btn);
   });
+
   area.appendChild(wrap);
 }
-function selectMode(mode){gameMode=mode;startGame();}
+function selectMode(mode){
+  gameMode=mode;
+  startGame();
+}
 
 /* ================================================================
    배경 시스템 — 구름 전환 효과
@@ -392,21 +447,17 @@ function transitionBg(newIdx){
   const incoming=(activeBgLayer==='A')?bgB:bgA;
   const outgoing=(activeBgLayer==='A')?bgA:bgB;
 
-  /* 새 배경을 뒤쪽 레이어에 세팅 */
   setBgLayer(incoming,newIdx);
   incoming.style.opacity='1';
 
-  /* 구름이 몰려옴 */
   cloudOverlay.classList.add('active');
 
   setTimeout(()=>{
-    /* 구름이 가장 짙을 때 — 기존 배경 숨기고 새 배경 표시 */
     outgoing.style.opacity='0';
     activeBgLayer=(activeBgLayer==='A')?'B':'A';
   },600);
 
   setTimeout(()=>{
-    /* 구름 사라짐 */
     cloudOverlay.classList.remove('active');
     bgTransitioning=false;
   },1200);
@@ -417,18 +468,15 @@ function updateBg(floor){
 
   if(phase.idx!==currentBgIdx){
     if(currentBgIdx===-1){
-      /* 첫 배경: 전환 효과 없이 즉시 */
       setBgLayer(bgA,phase.idx);
       bgA.style.opacity='1';
       activeBgLayer='A';
     }else{
-      /* 구름 전환 */
       transitionBg(phase.idx);
     }
     currentBgIdx=phase.idx;
   }
 
-  /* 구간 내 세로 스크롤 */
   const maxF=(gameMode==='story')?150:250;
   const segSize=maxF/5;
   const segStart=phase.idx*segSize;
@@ -447,19 +495,40 @@ function updateBg(floor){
    오디오
    ================================================================ */
 let audioCtx=null;
-function ensureAudio(){if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();}
+function ensureAudio(){
+  if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+}
 function playTone(freq,dur,type,vol){
   ensureAudio();
-  const o=audioCtx.createOscillator(),g=audioCtx.createGain();
-  o.type=type||'square';o.frequency.value=freq;
-  g.gain.value=vol||.08;g.gain.linearRampToValueAtTime(0,audioCtx.currentTime+dur);
-  o.connect(g);g.connect(audioCtx.destination);o.start();o.stop(audioCtx.currentTime+dur);
+  const o=audioCtx.createOscillator();
+  const g=audioCtx.createGain();
+  o.type=type||'square';
+  o.frequency.value=freq;
+  g.gain.value=vol||.08;
+  g.gain.linearRampToValueAtTime(0,audioCtx.currentTime+dur);
+  o.connect(g);
+  g.connect(audioCtx.destination);
+  o.start();
+  o.stop(audioCtx.currentTime+dur);
 }
-function sfxJump(){playTone(520,.1,'square',.07);setTimeout(()=>playTone(680,.08,'square',.05),50);}
-function sfxTurn(){playTone(440,.08,'triangle',.06);setTimeout(()=>playTone(580,.1,'triangle',.05),40);}
-function sfxFail(){playTone(200,.3,'sawtooth',.1);setTimeout(()=>playTone(150,.4,'sawtooth',.08),150);}
-function sfxClear(){[523,659,784,1047].forEach((f,i)=>setTimeout(()=>playTone(f,.3,'square',.08),i*120));}
-function sfxCombo(){playTone(800+combo*30,.06,'square',.05);}
+function sfxJump(){
+  playTone(520,.1,'square',.07);
+  setTimeout(()=>playTone(680,.08,'square',.05),50);
+}
+function sfxTurn(){
+  playTone(440,.08,'triangle',.06);
+  setTimeout(()=>playTone(580,.1,'triangle',.05),40);
+}
+function sfxFail(){
+  playTone(200,.3,'sawtooth',.1);
+  setTimeout(()=>playTone(150,.4,'sawtooth',.08),150);
+}
+function sfxClear(){
+  [523,659,784,1047].forEach((f,i)=>setTimeout(()=>playTone(f,.3,'square',.08),i*120));
+}
+function sfxCombo(){
+  playTone(800+combo*30,.06,'square',.05);
+}
 
 let bgmInterval=null;
 function startBGM(){
@@ -467,11 +536,17 @@ function startBGM(){
   const notes=[262,330,392,523,392,330,262,330,392,523,659,523,392,330];
   let i=0;
   bgmInterval=setInterval(()=>{
-    if(!gameActive){clearInterval(bgmInterval);return;}
-    playTone(notes[i%notes.length],.25,'triangle',.03);i++;
+    if(!gameActive){
+      clearInterval(bgmInterval);
+      return;
+    }
+    playTone(notes[i%notes.length],.25,'triangle',.03);
+    i++;
   },500);
 }
-function stopBGM(){if(bgmInterval)clearInterval(bgmInterval);}
+function stopBGM(){
+  if(bgmInterval)clearInterval(bgmInterval);
+}
 
 /* ================================================================
    계단
@@ -479,35 +554,53 @@ function stopBGM(){if(bgmInterval)clearInterval(bgmInterval);}
 function getStepType(floor){
   if(gameMode==='story'){
     const p=floor/150;
-    if(p>.85)return'gold';if(p>.6&&Math.random()<.25)return'fire';
-    if(p>.4&&Math.random()<.2)return'dark';if(p>.2&&Math.random()<.2)return'ice';
+    if(p>.85)return'gold';
+    if(p>.6&&Math.random()<.25)return'fire';
+    if(p>.4&&Math.random()<.2)return'dark';
+    if(p>.2&&Math.random()<.2)return'ice';
   }else{
-    if(floor>100&&Math.random()<.15)return'gold';if(floor>60&&Math.random()<.2)return'fire';
-    if(floor>30&&Math.random()<.2)return'dark';if(floor>10&&Math.random()<.2)return'ice';
+    if(floor>100&&Math.random()<.15)return'gold';
+    if(floor>60&&Math.random()<.2)return'fire';
+    if(floor>30&&Math.random()<.2)return'dark';
+    if(floor>10&&Math.random()<.2)return'ice';
   }
   return'normal';
 }
+
 function addNewStep(){
   const prev=steps[steps.length-1];
   const dir=Math.random()<.5?-1:1;
-  const s={x:prev.x+dir*STEP_W,y:prev.y-STEP_DY,dir:dir,
-    type:getStepType(steps.length),floor:steps.length,el:null};
-  steps.push(s);renderStep(s);
+  const s={
+    x:prev.x+dir*STEP_W,
+    y:prev.y-STEP_DY,
+    dir:dir,
+    type:getStepType(steps.length),
+    floor:steps.length,
+    el:null
+  };
+  steps.push(s);
+  renderStep(s);
 }
+
 function renderStep(s){
   const div=document.createElement('div');
   div.className='step step-'+s.type;
-  div.style.width=STEP_RENDER_W+'px';div.style.height=STEP_RENDER_H+'px';
-  div.style.left=(s.x-STEP_RENDER_W/2)+'px';div.style.top=s.y+'px';
-  world.appendChild(div);s.el=div;
+  div.style.width=STEP_RENDER_W+'px';
+  div.style.height=STEP_RENDER_H+'px';
+  div.style.left=(s.x-STEP_RENDER_W/2)+'px';
+  div.style.top=s.y+'px';
+  world.appendChild(div);
+  s.el=div;
 }
+
+/* 스토리 모드에서는 천국의 문을 반드시 150층 계단 기준으로 생성 */
 function createHeavenGate(){
   if(heavenGateEl)return;
-  const last=steps[steps.length-1];
+  const targetStep=steps[150] || steps[steps.length-1];
   heavenGateEl=document.createElement('div');
   heavenGateEl.className='heaven-gate';
-  heavenGateEl.style.left=(last.x-100)+'px';
-  heavenGateEl.style.top=(last.y-140)+'px';
+  heavenGateEl.style.left=(targetStep.x-100)+'px';
+  heavenGateEl.style.top=(targetStep.y-140)+'px';
   heavenGateEl.innerHTML='<div class="gate-glow">🕊️</div><div class="gate-text">천국의 문</div>';
   world.appendChild(heavenGateEl);
 }
@@ -517,7 +610,8 @@ function createHeavenGate(){
    ================================================================ */
 function getPlayerFeetScreenY(){return window.innerHeight-BTN_HEIGHT-40;}
 function updateCamera(){
-  const cur=steps[score];if(!cur)return;
+  const cur=steps[score];
+  if(!cur)return;
   const feetY=getPlayerFeetScreenY();
   world.style.transform=`translate(${window.innerWidth/2-cur.x}px,${feetY-cur.y}px)`;
 }
@@ -540,39 +634,59 @@ function startGame(){
   document.getElementById('clearOverlay').classList.remove('active');
   document.getElementById('overOverlay').classList.remove('active');
   progressWrap.style.display=(gameMode==='story')?'block':'none';
-  initGameState();startBGM();
+  initGameState();
+  startBGM();
 }
 
 function initGameState(){
-  gameActive=true;score=0;combo=0;maxCombo=0;
-  moveDir=1;playerDir=1;elapsed=0;currentBgIdx=-1;
-  heavenGateEl=null;lastInputTime=0;bgTransitioning=false;
+  gameActive=true;
+  score=0;
+  combo=0;
+  maxCombo=0;
+  moveDir=1;
+  playerDir=1;
+  elapsed=0;
+  currentBgIdx=-1;
+  heavenGateEl=null;
+  lastInputTime=0;
+  bgTransitioning=false;
   activeBgLayer='A';
-  bgA.style.opacity='1';bgA.style.backgroundImage='';
-  bgB.style.opacity='0';bgB.style.backgroundImage='';
+
+  bgA.style.opacity='1';
+  bgA.style.backgroundImage='';
+  bgB.style.opacity='0';
+  bgB.style.backgroundImage='';
   cloudOverlay.classList.remove('active');
-  world.innerHTML='';steps=[];
+  world.innerHTML='';
+  steps=[];
 
   if(storyPopupTimer)clearTimeout(storyPopupTimer);
   storyPopupEl.classList.remove('show');
 
-  const startX=window.innerWidth/2,startY=1000;
+  const startX=window.innerWidth/2;
+  const startY=1000;
+
   steps.push({x:startX,y:startY,dir:0,type:'normal',floor:0,el:null});
   renderStep(steps[0]);
 
-  const total=(gameMode==='story')?152:AHEAD_COUNT+5;
+  /* 스토리 모드는 정확히 150층까지만 생성 */
+  const total=(gameMode==='story')?150:AHEAD_COUNT+5;
   for(let i=0;i<total;i++)addNewStep();
+
   if(gameMode==='story')createHeavenGate();
 
   setPlayerImage('idle');
-  player.style.width=PLAYER_W+'px';player.style.height=PLAYER_H+'px';
+  player.style.width=PLAYER_W+'px';
+  player.style.height=PLAYER_H+'px';
   player.style.left=(window.innerWidth/2-PLAYER_W/2)+'px';
   player.style.top=(getPlayerFeetScreenY()-PLAYER_H+CHAR_VISUAL_OFFSET)+'px';
   player.style.bottom='auto';
   player.style.transform='translateX(0) scaleX(1)';
   player.style.transition='transform .08s';
 
-  updateCamera();updateBg(0);updateHUD();
+  updateCamera();
+  updateBg(0);
+  updateHUD();
 
   if(timerInterval)clearInterval(timerInterval);
   timerStart=Date.now();
@@ -593,51 +707,75 @@ function updateHUD(){
    ================================================================ */
 function handleInput(action){
   if(!gameActive)return;
+
   const now=Date.now();
   if(now-lastInputTime<INPUT_COOLDOWN)return;
   lastInputTime=now;
 
   const nextIdx=score+1;
+
   if(nextIdx>=steps.length){
-    if(gameMode==='story'&&score>=150)gameClear();
+    if(gameMode==='story' && score===150){
+      gameClear();
+    }
     return;
   }
 
   const nextStep=steps[nextIdx];
   let inputDir;
+
   if(action==='turn'){
-    moveDir*=-1;playerDir=moveDir;inputDir=moveDir;sfxTurn();
+    moveDir*=-1;
+    playerDir=moveDir;
+    inputDir=moveDir;
+    sfxTurn();
   }else{
-    inputDir=moveDir;sfxJump();
+    inputDir=moveDir;
+    sfxJump();
   }
 
   if(inputDir===nextStep.dir){
-    score++;combo++;
+    score++;
+    combo++;
     if(combo>maxCombo)maxCombo=combo;
-    if(combo>=5&&combo%5===0){sfxCombo();showCombo(combo);}
+    if(combo>=5&&combo%5===0){
+      sfxCombo();
+      showCombo(combo);
+    }
 
     player.style.transform=`translateX(0) scaleX(${playerDir})`;
     setPlayerImage('step');
 
-    updateCamera();updateBg(score);updateHUD();
+    updateCamera();
+    updateBg(score);
+    updateHUD();
 
     if(gameMode==='infinite'){
       while(steps.length-score<AHEAD_COUNT+3)addNewStep();
       if(score>10){
         const old=steps[score-10];
-        if(old&&old.el&&old.el.parentNode){old.el.parentNode.removeChild(old.el);old.el=null;}
+        if(old&&old.el&&old.el.parentNode){
+          old.el.parentNode.removeChild(old.el);
+          old.el=null;
+        }
       }
     }
 
     checkStoryMessage(score);
 
-    if(gameMode==='story'&&score>=150){
-      setTimeout(()=>gameClear(),300);return;
+    /* 150층 도달 즉시 입력 잠금 → 151층 이상 올라가는 문제 방지 */
+    if(gameMode==='story' && score===150){
+      gameActive=false;
+      setTimeout(()=>gameClear(),300);
+      return;
     }
 
-    setTimeout(()=>{if(gameActive)setPlayerImage('idle');},80);
+    setTimeout(()=>{
+      if(gameActive)setPlayerImage('idle');
+    },80);
   }else{
-    combo=0;gameOver();
+    combo=0;
+    gameOver();
   }
 }
 
@@ -652,7 +790,8 @@ function showCombo(c){
 function checkStoryMessage(floor){
   if(gameMode!=='story')return;
   const msg=storyMessages.find(m=>m.floor===floor);
-  if(!msg)return;showStoryPopup(msg.text,msg.verse);
+  if(!msg)return;
+  showStoryPopup(msg.text,msg.verse);
 }
 function showStoryPopup(text,verse){
   if(storyPopupTimer)clearTimeout(storyPopupTimer);
@@ -660,7 +799,8 @@ function showStoryPopup(text,verse){
   document.getElementById('storyVerse').textContent=verse;
   storyPopupEl.classList.add('show');
   storyPopupTimer=setTimeout(()=>{
-    storyPopupEl.classList.remove('show');storyPopupTimer=null;
+    storyPopupEl.classList.remove('show');
+    storyPopupTimer=null;
   },3000);
 }
 
@@ -668,11 +808,15 @@ function showStoryPopup(text,verse){
    게임 오버 / 클리어
    ================================================================ */
 function gameOver(){
-  gameActive=false;sfxFail();stopBGM();
+  gameActive=false;
+  sfxFail();
+  stopBGM();
   if(timerInterval)clearInterval(timerInterval);
+
   setPlayerImage('fall');
   player.style.transition='top .6s ease-in';
   player.style.top=(window.innerHeight+50)+'px';
+
   setTimeout(()=>{
     player.style.transition='';
     document.getElementById('overInfo').textContent=
@@ -680,9 +824,13 @@ function gameOver(){
     document.getElementById('overOverlay').classList.add('active');
   },700);
 }
+
 function gameClear(){
-  gameActive=false;sfxClear();stopBGM();
   if(timerInterval)clearInterval(timerInterval);
+  gameActive=false;
+  sfxClear();
+  stopBGM();
+
   setTimeout(()=>{
     document.getElementById('clearInfo').textContent=
       `🏢 150층 완료! | ⏱ ${elapsed.toFixed(1)}초 | 🔥 최대콤보 ${maxCombo}`;
@@ -695,14 +843,21 @@ function gameClear(){
    ================================================================ */
 function restartGame(){
   ['clearOverlay','overOverlay','rankScreen'].forEach(id=>
-    document.getElementById(id).classList.remove('active'));
-  initGameState();startBGM();
+    document.getElementById(id).classList.remove('active')
+  );
+  initGameState();
+  startBGM();
 }
+
 function goTitle(){
-  gameActive=false;stopBGM();
+  gameActive=false;
+  stopBGM();
   if(timerInterval)clearInterval(timerInterval);
+
   ['clearOverlay','overOverlay','rankScreen'].forEach(id=>
-    document.getElementById(id).classList.remove('active'));
+    document.getElementById(id).classList.remove('active')
+  );
+
   document.getElementById('game-view').classList.remove('active');
   hud.classList.remove('active');
   document.getElementById('buttons').classList.remove('active');
@@ -714,54 +869,119 @@ function goTitle(){
    순위
    ================================================================ */
 function getScores(mode){
-  try{return JSON.parse(localStorage.getItem('moohan_'+mode))||[];}catch(e){return[];}
+  try{
+    return JSON.parse(localStorage.getItem('moohan_'+mode))||[];
+  }catch(e){
+    return [];
+  }
 }
+
+/* 새 기록 저장 + 전체 순위 반환 */
 function saveScore(mode,name,floor,time){
   const scores=getScores(mode);
-  scores.push({name,floor,time,date:new Date().toLocaleDateString()});
+
+  const entry={
+    id:Date.now().toString(36)+Math.random().toString(36).slice(2,8),
+    name,
+    floor,
+    time,
+    date:new Date().toLocaleDateString()
+  };
+
+  scores.push(entry);
   scores.sort((a,b)=>b.floor-a.floor||a.time-b.time);
-  localStorage.setItem('moohan_'+mode,JSON.stringify(scores.slice(0,50)));
+
+  const rank=scores.findIndex(s=>s.id===entry.id)+1;
+
+  /* 전체 저장 (localStorage 한도 내에서 동작) */
+  localStorage.setItem('moohan_'+mode,JSON.stringify(scores));
+
+  return {rank,entry};
 }
+
 function saveAndShow(mode){
   const isClr=document.getElementById('clearOverlay').classList.contains('active');
   const inp=isClr?document.getElementById('clearName'):document.getElementById('overName');
   const name=inp.value.trim()||'무명용사';
-  saveScore(mode,name,score,parseFloat(elapsed.toFixed(1)));
+
+  const result=saveScore(mode,name,score,parseFloat(elapsed.toFixed(1)));
+  lastSavedRankInfo={
+    mode,
+    rank:result.rank,
+    entry:result.entry
+  };
+
   inp.value='';
   document.getElementById('clearOverlay').classList.remove('active');
   document.getElementById('overOverlay').classList.remove('active');
   showRanking(mode);
 }
+
 let currentRankTab='story';
+
 function showRanking(mode){
   currentRankTab=mode||'story';
   document.getElementById('rankScreen').classList.add('active');
+
   document.querySelectorAll('.rank-tab').forEach(t=>{
     t.classList.remove('active');
     if((currentRankTab==='story'&&t.textContent.includes('여정'))||
-       (currentRankTab==='infinite'&&t.textContent.includes('무한')))
+       (currentRankTab==='infinite'&&t.textContent.includes('무한'))){
       t.classList.add('active');
+    }
   });
+
   renderRank(currentRankTab);
 }
+
 function switchRankTab(mode,btn){
   currentRankTab=mode;
   document.querySelectorAll('.rank-tab').forEach(t=>t.classList.remove('active'));
-  btn.classList.add('active');renderRank(mode);
+  btn.classList.add('active');
+  renderRank(mode);
 }
+
+/* 상위 10위만 표에 표시 + 내 순위 따로 표시 */
 function renderRank(mode){
   const scores=getScores(mode);
   const body=document.getElementById('rankBody');
+
   if(!scores.length){
-    body.innerHTML='<p style="text-align:center;color:#999;margin-top:30px;">아직 기록이 없습니다</p>';return;
+    body.innerHTML='<p style="text-align:center;color:#999;margin-top:30px;">아직 기록이 없습니다</p>';
+    return;
   }
+
+  const top10=scores.slice(0,10);
+
   let html='<table class="rank-table"><thead><tr><th>#</th><th>이름</th><th>층</th><th>시간</th><th>날짜</th></tr></thead><tbody>';
-  scores.forEach((s,i)=>{
-    const m=i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1);
-    html+=`<tr><td>${m}</td><td>${s.name}</td><td>${s.floor}</td><td>${s.time}s</td><td>${s.date||''}</td></tr>`;
+
+  top10.forEach((s,i)=>{
+    const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1);
+    const isMine=lastSavedRankInfo && lastSavedRankInfo.mode===mode && lastSavedRankInfo.entry && lastSavedRankInfo.entry.id===s.id;
+
+    html+=`<tr style="${isMine?'background:rgba(255,215,64,.12);font-weight:700;':''}">
+      <td>${medal}</td>
+      <td>${s.name}</td>
+      <td>${s.floor}</td>
+      <td>${s.time}s</td>
+      <td>${s.date||''}</td>
+    </tr>`;
   });
-  body.innerHTML=html+'</tbody></table>';
+
+  html+='</tbody></table>';
+
+  if(lastSavedRankInfo && lastSavedRankInfo.mode===mode){
+    html+=`
+      <div class="my-rank-box">
+        내 순위<br>
+        <strong>${lastSavedRankInfo.rank}위</strong>
+      </div>
+    `;
+  }
+
+  body.innerHTML=html;
 }
+
 function closeRanking(){
   document.getElementById('rankScreen').classList.remove('active');
   if(!gameActive){
