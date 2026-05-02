@@ -3,20 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
-<title>무한의 계단 – 교회 에디션 (Online)</title>
-
-<!-- Firebase SDK 라이브러리 -->
+<title>무한의 계단 – 교회 에디션 (Online & Sound)</title>
 <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
-
 <style>
 /* 기존 스타일 그대로 유지 */
 *{margin:0;padding:0;box-sizing:border-box;}
 html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-serif;background:#000;touch-action:none;user-select:none;}
 #loadScreen{position:fixed;inset:0;z-index:9999;background:#0a0520;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;font-size:18px;}
 #loadScreen.hidden{display:none;}
-#loadBar{width:60%;height:14px;background:#222;border-radius:7px;margin-top:16px;overflow:hidden;}
-#loadFill{width:0%;height:100%;background:linear-gradient(90deg,#ffd740,#ff9800);border-radius:7px;}
 #titleScreen{position:fixed;inset:0;z-index:100;background:linear-gradient(180deg,#0a0520 0%,#1a0a3e 50%,#2d1b69 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;}
 #titleScreen.hidden{display:none;}
 .title-main{font-size:32px;font-weight:900;text-shadow:0 0 20px rgba(255,215,64,.6);margin-bottom:6px;text-align:center;}
@@ -43,18 +38,15 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
 .overlay{position:fixed;inset:0;z-index:300;display:none;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,0,0,.85);color:#fff;text-align:center;padding:20px;}
 .overlay.active{display:flex;}
 .ov-input{padding:10px;border-radius:8px;width:200px;margin:10px 0;text-align:center;}
-.ov-btn{padding:12px 28px;border-radius:10px;font-weight:700;cursor:pointer;background:#ffd740;border:none;}
-#rankScreen{position:fixed;inset:0;z-index:400;display:none;flex-direction:column;background:rgba(0,0,0,.92);color:#fff;padding:20px;}
-#rankScreen.active{display:flex;}
 .rank-table{width:100%;border-collapse:collapse;margin-top:10px;}
 .rank-table th{color:#ffd740;padding:8px;}
-.rank-table td{padding:8px;border-bottom:1px solid #333;text-align:center;}
-.my-rank-box{margin-top:15px;padding:10px;background:rgba(255,215,64,0.1);border:1px solid #ffd740;border-radius:10px;}
+.rank-table td{padding:8px;border-bottom:1px solid #333;text-align:center;color:#fff;}
+.my-rank-box{margin-top:15px;padding:10px;background:rgba(255,215,64,0.1);border:1px solid #ffd740;border-radius:10px;color:#fff;}
 </style>
 </head>
 <body>
 
-<div id="loadScreen"><div>리소스 로딩 중...</div><div id="loadBar"><div id="loadFill"></div></div></div>
+<div id="loadScreen"><div>리소스 로딩 중...</div></div>
 
 <div id="titleScreen">
     <div class="title-main">⛪ 무한의 계단</div><div class="title-sub">교회 에디션 (Online)</div>
@@ -70,17 +62,26 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
     <img id="player" src="">
     <div id="hud">
         <span id="hudFloor">🏢 0층</span><span id="hudTime">⏱ 0.0s</span>
-        <div id="progressWrap"><div id="progressFill"></div></div>
+        <div id="progressWrap" style="width:100px;"><div id="progressFill"></div></div>
     </div>
-    <div id="buttons"><div class="btn btn-turn" onclick="handleInput('turn')">↩️ 방향전환</div><div class="btn btn-forward" onclick="handleInput('forward')">⬆️ 오르기</div></div>
+    <div id="buttons">
+        <div class="btn btn-turn" onclick="handleInput('turn')">↩️ 방향전환</div>
+        <div class="btn btn-forward" onclick="handleInput('forward')">⬆️ 오르기</div>
+    </div>
 </div>
 
-<div class="overlay" id="clearOverlay"><div class="ov-title">🎉 클리어!</div><input class="ov-input" id="clearName" placeholder="이름 입력"><button class="ov-btn" onclick="saveAndShow('story')">기록 등록</button></div>
-<div class="overlay" id="overOverlay"><div class="ov-title">😇 다시 도전!</div><input class="ov-input" id="overName" placeholder="이름 입력"><button class="ov-btn" onclick="saveAndShow(gameMode)">기록 등록</button></div>
-<div id="rankScreen"><h2>🏆 실시간 순위표</h2><div id="rankBody"></div><button class="ov-btn" onclick="location.reload()" style="background:#555; margin-top:15px;">닫기</button></div>
+<div class="overlay" id="clearOverlay"><div class="ov-title">🎉 클리어!</div><input class="ov-input" id="clearName" placeholder="이름 입력"><button class="title-btn" onclick="saveAndShow('story')">기록 등록</button></div>
+<div class="overlay" id="overOverlay"><div class="ov-title">😇 다시 도전!</div><input class="ov-input" id="overName" placeholder="이름 입력"><button class="title-btn" onclick="saveAndShow(gameMode)">기록 등록</button></div>
+<div id="rankScreen" style="display:none; position:fixed; inset:0; z-index:400; background:rgba(0,0,0,0.92); flex-direction:column; padding:20px; overflow-y:auto;">
+    <h2 style="color:#ffd740; text-align:center;">🏆 실시간 순위표</h2>
+    <div id="rankBody"></div>
+    <button class="title-btn" onclick="location.reload()" style="background:#555; margin-top:15px;">닫기</button>
+</div>
 
 <script>
-// 1. Firebase 초기화
+/* ================================================================
+   1. Firebase 및 사운드 설정
+   ================================================================ */
 const firebaseConfig = {
     apiKey: "AIzaSyBNXIu32GPGJjfPlkrZ_WFLsZViMEWJvY4",
     authDomain: "moohan-2380a.firebaseapp.com",
@@ -93,118 +94,115 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-// 2. 게임 변수
-const charDefs={
-    pastor:{name:'목사님', idle:'https://i.postimg.cc/NMxfDbBK/idle.png', step:'https://i.postimg.cc/xCPT5gnc/step.png', fall:'https://i.postimg.cc/cHc4hT0K/fall.png'},
-    elder:{name:'장로님', idle:'https://i.postimg.cc/g0PXFG5w/jang1.png', step:'https://i.postimg.cc/Xv0GSnhJ/jang2.png', fall:'https://i.postimg.cc/R0z65v80/jang3.png'},
-    boy:{name:'신광이', idle:'https://i.postimg.cc/Z5NBMWfW/boy1.png', step:'https://i.postimg.cc/4xc7SY8m/boy2.png', fall:'https://i.postimg.cc/cJNgydjL/boy3.png'},
-    girl:{name:'새빛이', idle:'https://i.postimg.cc/nhmjPXdr/girl1.png', step:'https://i.postimg.cc/3xG4ckLy/girl2.png', fall:'https://i.postimg.cc/3wH4536r/girl3.png'}
-};
-let gameMode='story', selectedChar='pastor', gameActive=false, score=0, steps=[], moveDir=1, playerDir=1, elapsed=0, timerInterval=null, lastSavedId=null;
+// 사운드 엔진 복구
+let audioCtx = null;
+function ensureAudio() { if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+function playTone(freq, dur, type, vol) {
+    ensureAudio();
+    const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
+    o.type = type || 'square'; o.frequency.value = freq;
+    g.gain.value = vol || 0.05; g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + dur);
+    o.connect(g); g.connect(audioCtx.destination);
+    o.start(); o.stop(audioCtx.currentTime + dur);
+}
+const sfxJump = () => playTone(520, 0.1, 'square', 0.07);
+const sfxTurn = () => playTone(440, 0.08, 'triangle', 0.06);
+const sfxFail = () => playTone(200, 0.3, 'sawtooth', 0.1);
+const sfxClear = () => [523, 659, 784, 1047].forEach((f, i) => setTimeout(() => playTone(f, 0.3, 'square', 0.08), i * 120));
 
-// 3. UI 생성 및 로딩 제어
-function buildCharSelect(){
+let bgmInterval = null;
+function startBGM() {
+    ensureAudio();
+    if(bgmInterval) clearInterval(bgmInterval);
+    bgmInterval = setInterval(() => { if(gameActive) playTone(262, 0.25, 'triangle', 0.02); }, 500);
+}
+
+/* ================================================================
+   2. 게임 로직
+   ================================================================ */
+const charDefs={
+    pastor:{idle:'https://i.postimg.cc/NMxfDbBK/idle.png', step:'https://i.postimg.cc/xCPT5gnc/step.png', fall:'https://i.postimg.cc/cHc4hT0K/fall.png', name:'목사님'},
+    elder:{idle:'https://i.postimg.cc/g0PXFG5w/jang1.png', step:'https://i.postimg.cc/Xv0GSnhJ/jang2.png', fall:'https://i.postimg.cc/R0z65v80/jang3.png', name:'장로님'},
+    boy:{idle:'https://i.postimg.cc/Z5NBMWfW/boy1.png', step:'https://i.postimg.cc/4xc7SY8m/boy2.png', fall:'https://i.postimg.cc/cJNgydjL/boy3.png', name:'신광이'},
+    girl:{idle:'https://i.postimg.cc/nhmjPXdr/girl1.png', step:'https://i.postimg.cc/3xG4ckLy/girl2.png', fall:'https://i.postimg.cc/3wH4536r/girl3.png', name:'새빛이'}
+};
+let gameMode='story', selectedChar='pastor', gameActive=false, score=0, steps=[], moveDir=1, playerDir=1, elapsed=0, timerInterval=null, lastId=null;
+
+function buildCharSelect() {
     const area = document.getElementById('charSelectArea'); area.innerHTML='';
-    Object.entries(charDefs).forEach(([key, def]) => {
-        const btn = document.createElement('button');
-        btn.className = 'char-btn' + (key===selectedChar?' selected':'');
-        btn.innerHTML = `<img src="${def.idle}"><span>${def.name}</span>`;
-        btn.onclick = () => {
-            selectedChar = key;
-            document.querySelectorAll('.char-btn').forEach(b => b.classList.remove('selected'));
-            btn.classList.add('selected');
-        };
-        area.appendChild(btn);
+    Object.entries(charDefs).forEach(([k, v]) => {
+        const b = document.createElement('button'); b.className = 'char-btn' + (k===selectedChar?' selected':'');
+        b.innerHTML = `<img src="${v.idle}"><span>${v.name}</span>`;
+        b.onclick = () => { selectedChar=k; document.querySelectorAll('.char-btn').forEach(x=>x.classList.remove('selected')); b.classList.add('selected'); };
+        area.appendChild(b);
     });
 }
 
-function selectMode(m){ gameMode=m; startGame(); }
-function startGame(){
-    document.getElementById('titleScreen').classList.add('hidden');
-    document.getElementById('game-view').classList.add('active');
-    document.getElementById('hud').classList.add('active');
-    document.getElementById('buttons').classList.add('active');
-    initGameState();
-}
+function selectMode(m) { gameMode=m; document.getElementById('titleScreen').classList.add('hidden'); document.getElementById('game-view').classList.add('active'); document.getElementById('hud').classList.add('active'); document.getElementById('buttons').classList.add('active'); initGameState(); }
 
-function initGameState(){
-    gameActive=true; score=0; moveDir=1; playerDir=1; elapsed=0; steps=[];
+function initGameState() {
+    gameActive=true; score=0; moveDir=1; playerDir=1; elapsed=0; steps=[]; 
     document.getElementById('world').innerHTML='';
     steps.push({x:window.innerWidth/2, y:1000, dir:0}); renderStep(steps[0]);
     for(let i=0; i<160; i++) addNewStep();
-    const p = document.getElementById('player');
-    p.src = charDefs[selectedChar].idle;
-    p.style.width='120px'; p.style.height='150px';
-    p.style.left=(window.innerWidth/2-60)+'px';
-    p.style.top=(window.innerHeight-130-40-150+20)+'px';
-    updateCamera();
+    const p = document.getElementById('player'); p.src = charDefs[selectedChar].idle;
+    p.style.width='120px'; p.style.height='150px'; p.style.left=(window.innerWidth/2-60)+'px'; p.style.top=(window.innerHeight-170-150+20)+'px';
+    updateCamera(); startBGM();
     if(timerInterval) clearInterval(timerInterval);
-    timerInterval=setInterval(()=>{ if(gameActive) { elapsed+=0.1; document.getElementById('hudTime').textContent='⏱ '+elapsed.toFixed(1)+'s'; } },100);
+    timerInterval = setInterval(() => { if(gameActive) { elapsed += 0.1; document.getElementById('hudTime').textContent='⏱ '+elapsed.toFixed(1)+'s'; } }, 100);
 }
 
-function addNewStep(){
-    const prev=steps[steps.length-1]; const dir=Math.random()<0.5?-1:1;
-    const s={x:prev.x+dir*55, y:prev.y-48, dir:dir}; steps.push(s); renderStep(s);
-}
-function renderStep(s){
-    const div=document.createElement('div'); div.className='step';
-    div.style.width='80px'; div.style.height='28px'; div.style.left=(s.x-40)+'px'; div.style.top=s.y+'px';
-    document.getElementById('world').appendChild(div);
-}
-function updateCamera(){
-    const cur=steps[score];
-    document.getElementById('world').style.transform=`translate(${window.innerWidth/2-cur.x}px, ${window.innerHeight-170-cur.y}px)`;
-    document.getElementById('hudFloor').textContent='🏢 '+score+'층';
-    document.getElementById('progressFill').style.width=(score/150*100)+'%';
-}
+function addNewStep() { const prev=steps[steps.length-1]; const dir=Math.random()<0.5?-1:1; const s={x:prev.x+dir*55, y:prev.y-48, dir:dir}; steps.push(s); renderStep(s); }
+function renderStep(s) { const d=document.createElement('div'); d.className='step'; d.style.width='80px'; d.style.height='28px'; d.style.left=(s.x-40)+'px'; d.style.top=s.y+'px'; d.style.position='absolute'; document.getElementById('world').appendChild(d); }
+function updateCamera() { const cur=steps[score]; document.getElementById('world').style.transform=`translate(${window.innerWidth/2-cur.x}px, ${window.innerHeight-170-cur.y}px)`; document.getElementById('hudFloor').textContent='🏢 '+score+'층'; document.getElementById('progressFill').style.width=(score/150*100)+'%'; }
 
-function handleInput(action){
+function handleInput(action) {
     if(!gameActive) return;
-    const next=steps[score+1];
-    let inputDir=moveDir; if(action==='turn'){ moveDir*=-1; playerDir=moveDir; inputDir=moveDir; }
-    if(inputDir===next.dir){
-        score++; document.getElementById('player').style.transform=`scaleX(${playerDir})`;
-        document.getElementById('player').src=charDefs[selectedChar].step;
+    const next = steps[score+1];
+    let inputDir = moveDir; if(action==='turn') { moveDir *= -1; playerDir = moveDir; inputDir = moveDir; sfxTurn(); } else { sfxJump(); }
+    if(inputDir === next.dir) {
+        score++; document.getElementById('player').style.transform=`scaleX(${playerDir})`; document.getElementById('player').src=charDefs[selectedChar].step;
         updateCamera(); if(score===150 && gameMode==='story') gameClear();
-        setTimeout(()=>{ if(gameActive) document.getElementById('player').src=charDefs[selectedChar].idle; },80);
+        setTimeout(() => { if(gameActive) document.getElementById('player').src=charDefs[selectedChar].idle; }, 80);
     } else { gameOver(); }
 }
 
-// 4. 온라인 저장 및 랭킹
-function saveAndShow(mode){
+/* ================================================================
+   3. 온라인 저장 및 랭킹
+   ================================================================ */
+function saveAndShow(mode) {
     const name = document.getElementById(mode==='story'?'clearName':'overName').value.trim() || '무명성도';
     const entry = { name, floor:score, time:parseFloat(elapsed.toFixed(1)), timestamp:Date.now() };
     const newRef = db.ref('rankings/'+mode).push();
-    newRef.set(entry); lastSavedId = newRef.key;
+    newRef.set(entry); lastId = newRef.key;
     document.querySelectorAll('.overlay').forEach(o=>o.classList.remove('active'));
     showRanking(mode);
 }
 
-function renderRank(mode){
-    const body = document.getElementById('rankBody'); body.innerHTML = '불러오는 중...';
+function renderRank(mode) {
+    const body = document.getElementById('rankBody'); body.innerHTML = '<p style="text-align:center; color:#fff;">기록 불러오는 중...</p>';
     db.ref('rankings/'+mode).orderByChild('floor').limitToLast(100).once('value', snap => {
         let list=[]; snap.forEach(c=>{ let d=c.val(); d.id=c.key; list.push(d); });
-        list.sort((a,b)=>b.floor-a.floor || a.time-b.time);
+        list.sort((a,b) => b.floor - a.floor || a.time - b.time);
         let html='<table class="rank-table"><tr><th>순위</th><th>이름</th><th>층</th><th>시간</th></tr>';
-        list.slice(0,10).forEach((s,i)=>{
-            const isMine = lastSavedId === s.id;
-            html+=`<tr style="${isMine?'background:rgba(255,215,64,0.3)':''}"><td>${i+1}</td><td>${s.name}</td><td>${s.floor}</td><td>${s.time}s</td></tr>`;
+        list.slice(0,10).forEach((s, i) => {
+            const isMine = lastId === s.id;
+            html += `<tr style="${isMine?'background:rgba(255,215,64,0.3)':''}"><td>${i+1}</td><td>${s.name}</td><td>${s.floor}</td><td>${s.time}s</td></tr>`;
         });
-        html+='</table>';
-        if(lastSavedId){
-            const myRank = list.findIndex(x=>x.id===lastSavedId)+1;
-            const myData = list.find(x=>x.id===lastSavedId);
-            if(myData) html+=`<div class="my-rank-box">나의 방금 기록: <strong>${myRank}위</strong> (${myData.floor}층)</div>`;
+        html += '</table>';
+        if(lastId) {
+            const myRank = list.findIndex(x=>x.id===lastId)+1;
+            const myData = list.find(x=>x.id===lastId);
+            if(myData) html += `<div class="my-rank-box">방금 나의 기록: <strong>${myRank}위</strong> (${myData.floor}층)</div>`;
         }
-        body.innerHTML=html;
+        body.innerHTML = html;
     });
 }
 
-function showRanking(mode){ document.getElementById('rankScreen').classList.add('active'); renderRank(mode||'story'); }
-function gameOver(){ gameActive=false; document.getElementById('player').src=charDefs[selectedChar].fall; clearInterval(timerInterval); document.getElementById('overOverlay').classList.add('active'); }
-function gameClear(){ gameActive=false; clearInterval(timerInterval); document.getElementById('clearOverlay').classList.add('active'); }
+function showRanking(mode) { document.getElementById('rankScreen').style.display='flex'; renderRank(mode||'story'); }
+function gameOver() { gameActive=false; sfxFail(); if(bgmInterval) clearInterval(bgmInterval); document.getElementById('player').src=charDefs[selectedChar].fall; clearInterval(timerInterval); document.getElementById('overOverlay').classList.add('active'); }
+function gameClear() { gameActive=false; sfxClear(); if(bgmInterval) clearInterval(bgmInterval); clearInterval(timerInterval); document.getElementById('clearOverlay').classList.add('active'); }
 
-// 초기화 실행
 buildCharSelect();
 document.getElementById('loadScreen').classList.add('hidden');
 </script>
