@@ -5,16 +5,16 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
 <title>무한의 계단 – 교회 에디션 (Online)</title>
 
-<!-- Firebase SDK 필수 라이브러리 -->
+<!-- Firebase SDK 라이브러리 -->
 <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
 
 <style>
-/* 성도님의 기존 디자인 스타일 유지 */
+/* 기존 스타일 그대로 유지 */
 *{margin:0;padding:0;box-sizing:border-box;}
 html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-serif;background:#000;touch-action:none;user-select:none;}
-#loadScreen{position:fixed;inset:0;z-index:9999;background:#0a0520;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;font-size:18px;transition:opacity .5s;}
-#loadScreen.hidden{opacity:0;pointer-events:none;}
+#loadScreen{position:fixed;inset:0;z-index:9999;background:#0a0520;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;font-size:18px;}
+#loadScreen.hidden{display:none;}
 #loadBar{width:60%;height:14px;background:#222;border-radius:7px;margin-top:16px;overflow:hidden;}
 #loadFill{width:0%;height:100%;background:linear-gradient(90deg,#ffd740,#ff9800);border-radius:7px;}
 #titleScreen{position:fixed;inset:0;z-index:100;background:linear-gradient(180deg,#0a0520 0%,#1a0a3e 50%,#2d1b69 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;}
@@ -23,43 +23,40 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
 .title-btn{display:block;width:220px;padding:14px;margin:6px auto;border:2px solid #ffd740;border-radius:12px;background:rgba(255,215,64,.12);color:#ffd740;font-size:16px;font-weight:700;cursor:pointer;text-align:center;}
 .char-select{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin:18px 0;}
 .char-btn{width:90px;padding:10px 4px;border:2px solid #555;border-radius:10px;background:rgba(255,255,255,.06);color:#fff;font-size:12px;cursor:pointer;text-align:center;}
-.char-btn img{width:48px;height:60px;image-rendering:pixelated;display:block;margin:0 auto 4px;}
+.char-btn img{width:48px;height:60px;display:block;margin:0 auto 4px;}
 .char-btn.selected{border-color:#ffd740;background:rgba(255,215,64,.15);}
 #game-view{position:fixed;inset:0;display:none;z-index:10;}
 #game-view.active{display:block;}
-.bg-layer{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;background-color:#0a0520;background-size:cover;background-position:center;background-repeat:no-repeat;transition:opacity 1s ease-in-out;}
+.bg-layer{position:fixed;inset:0;z-index:0;background-size:cover;background-position:center;}
 #world{position:absolute;top:0;left:0;width:100%;height:100%;z-index:3;transition:transform .12s ease-out;}
-.step{position:absolute;image-rendering:pixelated;}
-.step-normal{background:#8B5E3C;border-top:3px solid #A97C50;border-left:2px solid #A97C50;border-right:2px solid #6B4226;border-bottom:2px solid #5C3A1E;}
-#player{position:fixed;z-index:5;image-rendering:pixelated;pointer-events:none;transition:transform .08s;}
-#hud{position:fixed;top:8px;left:8px;right:8px;z-index:50;display:none;color:#fff;font-size:14px;}
-#hud.active{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;}
-.hud-item{background:rgba(0,0,0,.5);padding:4px 10px;border-radius:8px;font-weight:700;}
-#progressWrap{width:100%;height:10px;background:rgba(255,255,255,.15);border-radius:5px;margin-top:6px;overflow:hidden;}
-#progressFill{height:100%;width:0%;background:linear-gradient(90deg,#ffd740,#ff9800);border-radius:5px;}
-#buttons{position:fixed;bottom:0;left:0;right:0;height:130px;z-index:60;display:none;gap:0;}
+.step{position:absolute;image-rendering:pixelated;background:#8B5E3C;border-top:3px solid #A97C50;}
+#player{position:fixed;z-index:5;image-rendering:pixelated;pointer-events:none;}
+#hud{position:fixed;top:8px;left:8px;right:8px;z-index:50;display:none;color:#fff;}
+#hud.active{display:flex;justify-content:space-between;}
+#progressWrap{width:100%;height:10px;background:rgba(255,255,255,.15);border-radius:5px;margin-top:6px;}
+#progressFill{height:100%;width:0%;background:#ffd740;border-radius:5px;}
+#buttons{position:fixed;bottom:0;left:0;right:0;height:130px;z-index:60;display:none;}
 #buttons.active{display:flex;}
-.btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border:none;font-size:18px;font-weight:700;color:#fff;cursor:pointer;}
+.btn{flex:1;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#fff;cursor:pointer;}
 .btn-turn{background:rgba(30,30,80,.85);}
 .btn-forward{background:rgba(80,30,30,.85);}
 .overlay{position:fixed;inset:0;z-index:300;display:none;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,0,0,.85);color:#fff;text-align:center;padding:20px;}
 .overlay.active{display:flex;}
-.ov-input{padding:10px;border-radius:8px;border:2px solid #ffd740;background:#111;color:#fff;font-size:16px;width:200px;margin:10px 0;text-align:center;}
-.ov-btn{padding:12px 28px;margin:6px;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;}
-.ov-btn-save{background:#ffd740;color:#000;}
+.ov-input{padding:10px;border-radius:8px;width:200px;margin:10px 0;text-align:center;}
+.ov-btn{padding:12px 28px;border-radius:10px;font-weight:700;cursor:pointer;background:#ffd740;border:none;}
 #rankScreen{position:fixed;inset:0;z-index:400;display:none;flex-direction:column;background:rgba(0,0,0,.92);color:#fff;padding:20px;}
 #rankScreen.active{display:flex;}
-#rankBody{flex:1;overflow-y:auto;}
-.rank-table{width:100%;border-collapse:collapse;font-size:13px;color:#fff;}
-.rank-table th{background:rgba(255,215,64,0.2);padding:8px;color:#ffd740;}
-.rank-table td{padding:8px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.1);}
-.my-rank-box{margin-top:14px;padding:12px;border-radius:10px;background:rgba(255,215,64,0.1);text-align:center;border:1px solid #ffd740;}
+.rank-table{width:100%;border-collapse:collapse;margin-top:10px;}
+.rank-table th{color:#ffd740;padding:8px;}
+.rank-table td{padding:8px;border-bottom:1px solid #333;text-align:center;}
+.my-rank-box{margin-top:15px;padding:10px;background:rgba(255,215,64,0.1);border:1px solid #ffd740;border-radius:10px;}
 </style>
 </head>
 <body>
 
 <div id="loadScreen"><div>리소스 로딩 중...</div><div id="loadBar"><div id="loadFill"></div></div></div>
-<div id="titleScreen" class="hidden">
+
+<div id="titleScreen">
     <div class="title-main">⛪ 무한의 계단</div><div class="title-sub">교회 에디션 (Online)</div>
     <div id="charSelectArea"></div>
     <button class="title-btn" onclick="selectMode('story')">✝️ 믿음의 여정 (150층)</button>
@@ -72,20 +69,18 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
     <div id="world"></div>
     <img id="player" src="">
     <div id="hud">
-        <span class="hud-item" id="hudFloor">🏢 0층</span><span class="hud-item" id="hudTime">⏱ 0.0s</span>
+        <span id="hudFloor">🏢 0층</span><span id="hudTime">⏱ 0.0s</span>
         <div id="progressWrap"><div id="progressFill"></div></div>
     </div>
-    <div id="buttons"><div class="btn btn-turn" id="btnTurn">↩️ 방향전환</div><div class="btn btn-forward" id="btnForward">⬆️ 오르기</div></div>
+    <div id="buttons"><div class="btn btn-turn" onclick="handleInput('turn')">↩️ 방향전환</div><div class="btn btn-forward" onclick="handleInput('forward')">⬆️ 오르기</div></div>
 </div>
 
-<div class="overlay" id="clearOverlay"><div class="ov-title">🎉 할렐루야! 클리어!</div><input class="ov-input" id="clearName" placeholder="이름 입력"><button class="ov-btn ov-btn-save" onclick="saveAndShow('story')">기록 등록</button></div>
-<div class="overlay" id="overOverlay"><div class="ov-title">😇 다시 도전하세요!</div><input class="ov-input" id="overName" placeholder="이름 입력"><button class="ov-btn ov-btn-save" onclick="saveAndShow(gameMode)">기록 등록</button></div>
-<div id="rankScreen"><h2>🏆 실시간 순위표</h2><div id="rankBody"></div><button class="ov-btn" onclick="closeRanking()" style="background:#555; color:#fff; margin-top:10px;">닫기</button></div>
+<div class="overlay" id="clearOverlay"><div class="ov-title">🎉 클리어!</div><input class="ov-input" id="clearName" placeholder="이름 입력"><button class="ov-btn" onclick="saveAndShow('story')">기록 등록</button></div>
+<div class="overlay" id="overOverlay"><div class="ov-title">😇 다시 도전!</div><input class="ov-input" id="overName" placeholder="이름 입력"><button class="ov-btn" onclick="saveAndShow(gameMode)">기록 등록</button></div>
+<div id="rankScreen"><h2>🏆 실시간 순위표</h2><div id="rankBody"></div><button class="ov-btn" onclick="location.reload()" style="background:#555; margin-top:15px;">닫기</button></div>
 
 <script>
-/* ================================================================
-   1. 온라인 설정 (Firebase)
-   ================================================================ */
+// 1. Firebase 초기화
 const firebaseConfig = {
     apiKey: "AIzaSyBNXIu32GPGJjfPlkrZ_WFLsZViMEWJvY4",
     authDomain: "moohan-2380a.firebaseapp.com",
@@ -98,124 +93,120 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-/* ================================================================
-   2. 게임 데이터 및 로직
-   ================================================================ */
-const STEP_W=55, STEP_DY=48, PLAYER_W=120, PLAYER_H=150, BTN_HEIGHT=130;
+// 2. 게임 변수
 const charDefs={
     pastor:{name:'목사님', idle:'https://i.postimg.cc/NMxfDbBK/idle.png', step:'https://i.postimg.cc/xCPT5gnc/step.png', fall:'https://i.postimg.cc/cHc4hT0K/fall.png'},
     elder:{name:'장로님', idle:'https://i.postimg.cc/g0PXFG5w/jang1.png', step:'https://i.postimg.cc/Xv0GSnhJ/jang2.png', fall:'https://i.postimg.cc/R0z65v80/jang3.png'},
     boy:{name:'신광이', idle:'https://i.postimg.cc/Z5NBMWfW/boy1.png', step:'https://i.postimg.cc/4xc7SY8m/boy2.png', fall:'https://i.postimg.cc/cJNgydjL/boy3.png'},
     girl:{name:'새빛이', idle:'https://i.postimg.cc/nhmjPXdr/girl1.png', step:'https://i.postimg.cc/3xG4ckLy/girl2.png', fall:'https://i.postimg.cc/3wH4536r/girl3.png'}
 };
+let gameMode='story', selectedChar='pastor', gameActive=false, score=0, steps=[], moveDir=1, playerDir=1, elapsed=0, timerInterval=null, lastSavedId=null;
 
-let gameMode='story', selectedChar='pastor', gameActive=false, score=0, steps=[], moveDir=1, playerDir=1, elapsed=0, timerInterval=null, lastSavedRankInfo=null;
-
-const player = document.getElementById('player');
-
+// 3. UI 생성 및 로딩 제어
 function buildCharSelect(){
-    const area=document.getElementById('charSelectArea'); area.innerHTML='';
-    const wrap=document.createElement('div'); wrap.className='char-select';
-    Object.entries(charDefs).forEach(([key,def])=>{
-        const btn=document.createElement('button'); btn.className='char-btn'+(key===selectedChar?' selected':'');
-        btn.innerHTML=`<img src="${def.idle}"><span>${def.name}</span>`;
-        btn.onclick=()=>{ selectedChar=key; wrap.querySelectorAll('.char-btn').forEach(b=>b.classList.remove('selected')); btn.classList.add('selected'); };
-        wrap.appendChild(btn);
+    const area = document.getElementById('charSelectArea'); area.innerHTML='';
+    Object.entries(charDefs).forEach(([key, def]) => {
+        const btn = document.createElement('button');
+        btn.className = 'char-btn' + (key===selectedChar?' selected':'');
+        btn.innerHTML = `<img src="${def.idle}"><span>${def.name}</span>`;
+        btn.onclick = () => {
+            selectedChar = key;
+            document.querySelectorAll('.char-btn').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+        };
+        area.appendChild(btn);
     });
-    area.appendChild(wrap);
+}
+
+function selectMode(m){ gameMode=m; startGame(); }
+function startGame(){
+    document.getElementById('titleScreen').classList.add('hidden');
+    document.getElementById('game-view').classList.add('active');
+    document.getElementById('hud').classList.add('active');
+    document.getElementById('buttons').classList.add('active');
+    initGameState();
 }
 
 function initGameState(){
-    gameActive=true; score=0; moveDir=1; playerDir=1; elapsed=0; steps=[]; document.getElementById('world').innerHTML='';
-    const startX=window.innerWidth/2, startY=1000;
-    steps.push({x:startX, y:startY, dir:0}); renderStep(steps[0]);
+    gameActive=true; score=0; moveDir=1; playerDir=1; elapsed=0; steps=[];
+    document.getElementById('world').innerHTML='';
+    steps.push({x:window.innerWidth/2, y:1000, dir:0}); renderStep(steps[0]);
     for(let i=0; i<160; i++) addNewStep();
-    player.src=charDefs[selectedChar].idle;
-    player.style.width=PLAYER_W+'px'; player.style.height=PLAYER_H+'px';
-    player.style.left=(window.innerWidth/2-PLAYER_W/2)+'px';
-    player.style.top=(window.innerHeight-BTN_HEIGHT-40-PLAYER_H+20)+'px';
-    updateCamera(); updateHUD();
+    const p = document.getElementById('player');
+    p.src = charDefs[selectedChar].idle;
+    p.style.width='120px'; p.style.height='150px';
+    p.style.left=(window.innerWidth/2-60)+'px';
+    p.style.top=(window.innerHeight-130-40-150+20)+'px';
+    updateCamera();
     if(timerInterval) clearInterval(timerInterval);
-    timerInterval=setInterval(()=>{ if(gameActive) elapsed+=0.1; document.getElementById('hudTime').textContent='⏱ '+elapsed.toFixed(1)+'s'; },100);
+    timerInterval=setInterval(()=>{ if(gameActive) { elapsed+=0.1; document.getElementById('hudTime').textContent='⏱ '+elapsed.toFixed(1)+'s'; } },100);
 }
 
 function addNewStep(){
     const prev=steps[steps.length-1]; const dir=Math.random()<0.5?-1:1;
-    const s={x:prev.x+dir*STEP_W, y:prev.y-STEP_DY, dir:dir}; steps.push(s); renderStep(s);
+    const s={x:prev.x+dir*55, y:prev.y-48, dir:dir}; steps.push(s); renderStep(s);
 }
 function renderStep(s){
-    const div=document.createElement('div'); div.className='step step-normal';
-    div.style.width='80px'; div.style.height='28px'; div.style.left=(s.x-40)+'px'; div.style.top=s.y+'px'; div.style.position='absolute';
+    const div=document.createElement('div'); div.className='step';
+    div.style.width='80px'; div.style.height='28px'; div.style.left=(s.x-40)+'px'; div.style.top=s.y+'px';
     document.getElementById('world').appendChild(div);
 }
-function updateCamera(){ const cur=steps[score]; document.getElementById('world').style.transform=`translate(${window.innerWidth/2-cur.x}px, ${window.innerHeight-BTN_HEIGHT-40-cur.y}px)`; }
-function updateHUD(){ document.getElementById('hudFloor').textContent='🏢 '+score+'층'; document.getElementById('progressFill').style.width=(score/150*100)+'%'; }
+function updateCamera(){
+    const cur=steps[score];
+    document.getElementById('world').style.transform=`translate(${window.innerWidth/2-cur.x}px, ${window.innerHeight-170-cur.y}px)`;
+    document.getElementById('hudFloor').textContent='🏢 '+score+'층';
+    document.getElementById('progressFill').style.width=(score/150*100)+'%';
+}
 
 function handleInput(action){
     if(!gameActive) return;
-    const nextIdx=score+1; const nextStep=steps[nextIdx];
-    let inputDir=moveDir; 
-    if(action==='turn'){ moveDir*=-1; playerDir=moveDir; inputDir=moveDir; }
-    if(inputDir===nextStep.dir){
-        score++; player.style.transform=`scaleX(${playerDir})`;
-        player.src=charDefs[selectedChar].step;
-        updateCamera(); updateHUD(); 
-        if(score===150 && gameMode==='story') gameClear();
-        setTimeout(()=>{ if(gameActive) player.src=charDefs[selectedChar].idle; },80);
+    const next=steps[score+1];
+    let inputDir=moveDir; if(action==='turn'){ moveDir*=-1; playerDir=moveDir; inputDir=moveDir; }
+    if(inputDir===next.dir){
+        score++; document.getElementById('player').style.transform=`scaleX(${playerDir})`;
+        document.getElementById('player').src=charDefs[selectedChar].step;
+        updateCamera(); if(score===150 && gameMode==='story') gameClear();
+        setTimeout(()=>{ if(gameActive) document.getElementById('player').src=charDefs[selectedChar].idle; },80);
     } else { gameOver(); }
 }
 
-/* 온라인 저장 및 랭킹 */
+// 4. 온라인 저장 및 랭킹
 function saveAndShow(mode){
-    const inp = document.getElementById(mode==='story'?'clearName':'overName');
-    const name = inp.value.trim() || '무명성도';
+    const name = document.getElementById(mode==='story'?'clearName':'overName').value.trim() || '무명성도';
     const entry = { name, floor:score, time:parseFloat(elapsed.toFixed(1)), timestamp:Date.now() };
-    
-    // 🔥 Firebase에 실제로 데이터를 저장하는 부분
     const newRef = db.ref('rankings/'+mode).push();
-    newRef.set(entry).then(() => {
-        console.log("데이터 저장 성공!");
-    }).catch(err => {
-        console.error("데이터 저장 실패:", err);
-    });
-
-    lastSavedRankInfo = { id: newRef.key, mode, entry };
+    newRef.set(entry); lastSavedId = newRef.key;
     document.querySelectorAll('.overlay').forEach(o=>o.classList.remove('active'));
     showRanking(mode);
 }
 
 function renderRank(mode){
-    const body=document.getElementById('rankBody'); body.innerHTML='<p style="text-align:center;">성도들의 기록을 불러오는 중...</p>';
-    db.ref('rankings/'+mode).orderByChild('floor').limitToLast(100).once('value', snap=>{
+    const body = document.getElementById('rankBody'); body.innerHTML = '불러오는 중...';
+    db.ref('rankings/'+mode).orderByChild('floor').limitToLast(100).once('value', snap => {
         let list=[]; snap.forEach(c=>{ let d=c.val(); d.id=c.key; list.push(d); });
         list.sort((a,b)=>b.floor-a.floor || a.time-b.time);
-        let html='<table class="rank-table"><thead><tr><th>#</th><th>이름</th><th>층</th><th>시간</th></tr></thead>';
+        let html='<table class="rank-table"><tr><th>순위</th><th>이름</th><th>층</th><th>시간</th></tr>';
         list.slice(0,10).forEach((s,i)=>{
-            const isMine=lastSavedRankInfo && lastSavedRankInfo.id===s.id;
+            const isMine = lastSavedId === s.id;
             html+=`<tr style="${isMine?'background:rgba(255,215,64,0.3)':''}"><td>${i+1}</td><td>${s.name}</td><td>${s.floor}</td><td>${s.time}s</td></tr>`;
         });
         html+='</table>';
-        if(lastSavedRankInfo && lastSavedRankInfo.mode===mode){
-            const myRank=list.findIndex(x=>x.id===lastSavedRankInfo.id)+1;
-            html+=`<div class="my-rank-box">방금 나의 기록: <strong>${myRank}위</strong> (${lastSavedRankInfo.entry.floor}층)</div>`;
+        if(lastSavedId){
+            const myRank = list.findIndex(x=>x.id===lastSavedId)+1;
+            const myData = list.find(x=>x.id===lastSavedId);
+            if(myData) html+=`<div class="my-rank-box">나의 방금 기록: <strong>${myRank}위</strong> (${myData.floor}층)</div>`;
         }
         body.innerHTML=html;
     });
 }
 
-function selectMode(m){ gameMode=m; startGame(); }
-function startGame(){ document.getElementById('titleScreen').classList.add('hidden'); document.getElementById('game-view').classList.add('active'); document.getElementById('hud').classList.add('active'); document.getElementById('buttons').classList.add('active'); initGameState(); }
-function gameOver(){ gameActive=false; player.src=charDefs[selectedChar].fall; clearInterval(timerInterval); document.getElementById('overOverlay').classList.add('active'); }
-function gameClear(){ gameActive=false; clearInterval(timerInterval); document.getElementById('clearOverlay').classList.add('active'); }
 function showRanking(mode){ document.getElementById('rankScreen').classList.add('active'); renderRank(mode||'story'); }
-function closeRanking(){ document.getElementById('rankScreen').classList.remove('active'); location.reload(); }
+function gameOver(){ gameActive=false; document.getElementById('player').src=charDefs[selectedChar].fall; clearInterval(timerInterval); document.getElementById('overOverlay').classList.add('active'); }
+function gameClear(){ gameActive=false; clearInterval(timerInterval); document.getElementById('clearOverlay').classList.add('active'); }
 
-// 초기 실행
+// 초기화 실행
 buildCharSelect();
-document.getElementById('btnTurn').onclick=()=>handleInput('turn');
-document.getElementById('btnForward').onclick=()=>handleInput('forward');
 document.getElementById('loadScreen').classList.add('hidden');
-document.getElementById('titleScreen').classList.remove('hidden');
 </script>
 </body>
 </html>
