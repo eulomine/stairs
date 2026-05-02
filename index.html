@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
-<title>무한의 계단 – 교회 에디션 (Original Melody Restore)</title>
+<title>무한의 계단 – 교회 에디션 (Sound & Online)</title>
+<!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
 <style>
@@ -11,7 +12,6 @@
 *{margin:0;padding:0;box-sizing:border-box;}
 html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-serif;background:#000;touch-action:none;user-select:none;}
 #loadScreen{position:fixed;inset:0;z-index:9999;background:#0a0520;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;font-size:18px;}
-#loadScreen.hidden{display:none;}
 #titleScreen{position:fixed;inset:0;z-index:100;background:linear-gradient(180deg,#0a0520 0%,#1a0a3e 50%,#2d1b69 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;}
 #titleScreen.hidden{display:none;}
 .title-main{font-size:32px;font-weight:900;text-shadow:0 0 20px rgba(255,215,64,.6);margin-bottom:6px;text-align:center;}
@@ -78,7 +78,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
 
 <script>
 /* ================================================================
-   1. Firebase 및 오리지널 멜로디 엔진 복구
+   1. Firebase 및 [오리지널 사운드 엔진] 완벽 복구
    ================================================================ */
 const firebaseConfig = {
     apiKey: "AIzaSyBNXIu32GPGJjfPlkrZ_WFLsZViMEWJvY4",
@@ -95,7 +95,6 @@ const db = firebase.database();
 let audioCtx = null;
 let bgmInterval = null;
 
-// 오디오 시스템 활성화
 function initAudio() {
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -110,16 +109,15 @@ function playTone(freq, dur, type, vol) {
     o.start(); o.stop(audioCtx.currentTime + dur);
 }
 
-// 🔥 [복구] 원래 게임의 효과음 로직
+// 🔊 [오리지널 효과음 로직]
 const sfxJump = () => { playTone(520, 0.1, 'square', 0.07); setTimeout(()=>playTone(680, 0.08, 'square', 0.05), 50); };
 const sfxTurn = () => { playTone(440, 0.08, 'triangle', 0.06); setTimeout(()=>playTone(580, 0.1, 'triangle', 0.05), 40); };
 const sfxFail = () => { playTone(200, 0.3, 'sawtooth', 0.1); setTimeout(()=>playTone(150, 0.4, 'sawtooth', 0.08), 150); };
 const sfxClear = () => [523, 659, 784, 1047].forEach((f, i) => setTimeout(() => playTone(f, 0.3, 'square', 0.08), i * 120));
 
-// 🔥 [복구] 원래 게임의 배경음악 멜로디 (도-미-솔...)
+// 🎵 [오리지널 14음표 멜로디 로직]
 function startBGM() {
     if (bgmInterval) clearInterval(bgmInterval);
-    // 성도님이 처음에 주셨던 바로 그 멜로디 배열입니다.
     const melody = [262, 330, 392, 523, 392, 330, 262, 330, 392, 523, 659, 523, 392, 330];
     let noteIdx = 0;
     bgmInterval = setInterval(() => { 
@@ -139,7 +137,7 @@ const charDefs={
     boy:{idle:'https://i.postimg.cc/Z5NBMWfW/boy1.png', step:'https://i.postimg.cc/4xc7SY8m/boy2.png', fall:'https://i.postimg.cc/cJNgydjL/boy3.png', name:'신광이'},
     girl:{idle:'https://i.postimg.cc/nhmjPXdr/girl1.png', step:'https://i.postimg.cc/3xG4ckLy/girl2.png', fall:'https://i.postimg.cc/3wH4536r/girl3.png', name:'새빛이'}
 };
-let gameMode='story', selectedChar='pastor', gameActive=false, score=0, steps=[], moveDir=1, playerDir=1, elapsed=0, timerInterval=null, lastSavedId=null;
+let gameMode='story', selectedChar='pastor', gameActive=false, score=0, steps=[], moveDir=1, playerDir=1, elapsed=0, timerInterval=null, lastId=null;
 
 function buildCharSelect() {
     const area = document.getElementById('charSelectArea'); area.innerHTML='';
@@ -182,7 +180,7 @@ function handleInput(action) {
     } else { gameOver(); }
 }
 
-/* 온라인 저장 */
+/* 온라인 저장 및 랭킹 */
 function saveAndShow(mode) {
     const name = document.getElementById(mode==='story'?'clearName':'overName').value.trim() || '무명성도';
     const entry = { name, floor:score, time:parseFloat(elapsed.toFixed(1)), timestamp:Date.now() };
