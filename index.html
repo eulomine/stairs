@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
-<title>무한의 계단 – 교회 에디션 (Original Sound Restore)</title>
+<title>무한의 계단 – 교회 에디션 (Original Melody Restore)</title>
 <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
 <style>
-/* 성도님의 기존 스타일 시트 (모두 동일 유지) */
+/* 성도님의 기존 디자인 스타일 (동일 유지) */
 *{margin:0;padding:0;box-sizing:border-box;}
 html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-serif;background:#000;touch-action:none;user-select:none;}
 #loadScreen{position:fixed;inset:0;z-index:9999;background:#0a0520;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;font-size:18px;}
@@ -26,7 +26,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
 #world{position:absolute;top:0;left:0;width:100%;height:100%;z-index:3;transition:transform .12s ease-out;}
 .step{position:absolute;background:#8B5E3C;border-top:3px solid #A97C50;}
 #player{position:fixed;z-index:5;image-rendering:pixelated;pointer-events:none;}
-#hud{position:fixed;top:8px;left:8px;right:8px;z-index:50;display:none;color:#fff;font-size:14px;}
+#hud{position:fixed;top:8px;left:8px;right:8px;z-index:50;display:none;color:#fff;}
 #hud.active{display:flex;justify-content:space-between;align-items:center;}
 #progressWrap{width:100px;height:10px;background:rgba(255,255,255,.15);border-radius:5px;}
 #progressFill{height:100%;width:0%;background:#ffd740;border-radius:5px;transition:width .3s;}
@@ -38,12 +38,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
 .overlay{position:fixed;inset:0;z-index:300;display:none;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,0,0,0.85);color:#fff;text-align:center;padding:20px;}
 .overlay.active{display:flex;}
 .ov-input{padding:10px;border-radius:8px;width:200px;margin:10px 0;text-align:center;}
-#rankScreen{position:fixed;inset:0;z-index:400;display:none;flex-direction:column;background:rgba(0,0,0,0.92);color:#fff;padding:20px;}
+#rankScreen{position:fixed;inset:0;z-index:400;display:none;flex-direction:column;background:rgba(0,0,0,0.92);color:#fff;padding:20px;overflow-y:auto;}
 #rankScreen.active{display:flex;}
 .rank-table{width:100%;border-collapse:collapse;margin-top:10px;color:#fff;}
 .rank-table th{color:#ffd740;padding:8px;}
 .rank-table td{padding:8px;border-bottom:1px solid #333;text-align:center;}
-.my-rank-box{margin-top:15px;padding:10px;background:rgba(255,215,64,0.1);border:1px solid #ffd740;border-radius:10px;}
+.my-rank-box{margin-top:15px;padding:10px;background:rgba(255,215,64,0.1);border:1px solid #ffd740;border-radius:10px;color:#fff;}
 </style>
 </head>
 <body>
@@ -74,11 +74,11 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
 
 <div class="overlay" id="clearOverlay"><div class="ov-title">🎉 클리어!</div><input class="ov-input" id="clearName" placeholder="이름 입력"><button class="title-btn" onclick="saveAndShow('story')">기록 등록</button></div>
 <div class="overlay" id="overOverlay"><div class="ov-title">😇 다시 도전!</div><input class="ov-input" id="overName" placeholder="이름 입력"><button class="title-btn" onclick="saveAndShow(gameMode)">기록 등록</button></div>
-<div id="rankScreen"><h2>🏆 실시간 순위표</h2><div id="rankBody" style="flex:1; overflow-y:auto;"></div><button class="title-btn" onclick="location.reload()" style="background:#555; margin-top:15px;">닫기</button></div>
+<div id="rankScreen"><h2>🏆 실시간 순위표</h2><div id="rankBody"></div><button class="title-btn" onclick="location.reload()" style="background:#555; margin-top:15px;">닫기</button></div>
 
 <script>
 /* ================================================================
-   1. Firebase 및 오리지널 사운드 복구 (Notes & Timing)
+   1. Firebase 및 오리지널 멜로디 엔진 복구
    ================================================================ */
 const firebaseConfig = {
     apiKey: "AIzaSyBNXIu32GPGJjfPlkrZ_WFLsZViMEWJvY4",
@@ -95,6 +95,7 @@ const db = firebase.database();
 let audioCtx = null;
 let bgmInterval = null;
 
+// 오디오 시스템 활성화
 function initAudio() {
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -109,21 +110,22 @@ function playTone(freq, dur, type, vol) {
     o.start(); o.stop(audioCtx.currentTime + dur);
 }
 
-// 오리지널 효과음 복구
+// 🔥 [복구] 원래 게임의 효과음 로직
 const sfxJump = () => { playTone(520, 0.1, 'square', 0.07); setTimeout(()=>playTone(680, 0.08, 'square', 0.05), 50); };
 const sfxTurn = () => { playTone(440, 0.08, 'triangle', 0.06); setTimeout(()=>playTone(580, 0.1, 'triangle', 0.05), 40); };
 const sfxFail = () => { playTone(200, 0.3, 'sawtooth', 0.1); setTimeout(()=>playTone(150, 0.4, 'sawtooth', 0.08), 150); };
 const sfxClear = () => [523, 659, 784, 1047].forEach((f, i) => setTimeout(() => playTone(f, 0.3, 'square', 0.08), i * 120));
 
-// 오리지널 배경음악 멜로디 복구
+// 🔥 [복구] 원래 게임의 배경음악 멜로디 (도-미-솔...)
 function startBGM() {
     if (bgmInterval) clearInterval(bgmInterval);
-    const notes = [262, 330, 392, 523, 392, 330, 262, 330, 392, 523, 659, 523, 392, 330];
-    let i = 0;
+    // 성도님이 처음에 주셨던 바로 그 멜로디 배열입니다.
+    const melody = [262, 330, 392, 523, 392, 330, 262, 330, 392, 523, 659, 523, 392, 330];
+    let noteIdx = 0;
     bgmInterval = setInterval(() => { 
         if (gameActive && audioCtx) {
-            playTone(notes[i % notes.length], 0.2, 'triangle', 0.03);
-            i++;
+            playTone(melody[noteIdx % melody.length], 0.2, 'triangle', 0.02);
+            noteIdx++;
         }
     }, 500);
 }
@@ -137,7 +139,7 @@ const charDefs={
     boy:{idle:'https://i.postimg.cc/Z5NBMWfW/boy1.png', step:'https://i.postimg.cc/4xc7SY8m/boy2.png', fall:'https://i.postimg.cc/cJNgydjL/boy3.png', name:'신광이'},
     girl:{idle:'https://i.postimg.cc/nhmjPXdr/girl1.png', step:'https://i.postimg.cc/3xG4ckLy/girl2.png', fall:'https://i.postimg.cc/3wH4536r/girl3.png', name:'새빛이'}
 };
-let gameMode='story', selectedChar='pastor', gameActive=false, score=0, steps=[], moveDir=1, playerDir=1, elapsed=0, timerInterval=null, lastId=null;
+let gameMode='story', selectedChar='pastor', gameActive=false, score=0, steps=[], moveDir=1, playerDir=1, elapsed=0, timerInterval=null, lastSavedId=null;
 
 function buildCharSelect() {
     const area = document.getElementById('charSelectArea'); area.innerHTML='';
@@ -185,7 +187,7 @@ function saveAndShow(mode) {
     const name = document.getElementById(mode==='story'?'clearName':'overName').value.trim() || '무명성도';
     const entry = { name, floor:score, time:parseFloat(elapsed.toFixed(1)), timestamp:Date.now() };
     const newRef = db.ref('rankings/'+mode).push();
-    newRef.set(entry); lastId = newRef.key;
+    newRef.set(entry); lastSavedId = newRef.key;
     document.querySelectorAll('.overlay').forEach(o=>o.classList.remove('active'));
     showRanking(mode);
 }
@@ -197,13 +199,13 @@ function renderRank(mode) {
         list.sort((a,b) => b.floor - a.floor || a.time - b.time);
         let html='<table class="rank-table"><tr><th>순위</th><th>이름</th><th>층</th><th>시간</th></tr>';
         list.slice(0,10).forEach((s, i) => {
-            const isMine = lastId === s.id;
+            const isMine = lastSavedId === s.id;
             html += `<tr style="${isMine?'background:rgba(255,215,64,0.3)':''}"><td>${i+1}</td><td>${s.name}</td><td>${s.floor}</td><td>${s.time}s</td></tr>`;
         });
         html += '</table>';
-        if(lastId) {
-            const myRank = list.findIndex(x=>x.id===lastId)+1;
-            const myData = list.find(x=>x.id===lastId);
+        if(lastSavedId) {
+            const myRank = list.findIndex(x=>x.id===lastSavedId)+1;
+            const myData = list.find(x=>x.id===lastSavedId);
             if(myData) html += `<div class="my-rank-box">나의 방금 기록: <strong>${myRank}위</strong> (${myData.floor}층)</div>`;
         }
         body.innerHTML = html;
