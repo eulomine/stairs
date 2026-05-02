@@ -3,14 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
-<title>유한의 계단 - 이리신광교회 </title>
-
-<!-- Firebase SDK -->
+<title>무한의 계단 – 교회 에디션 (Original Sound Restore)</title>
 <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
-
 <style>
-/* 기존 스타일 그대로 유지 */
+/* 성도님의 기존 스타일 시트 (모두 동일 유지) */
 *{margin:0;padding:0;box-sizing:border-box;}
 html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-serif;background:#000;touch-action:none;user-select:none;}
 #loadScreen{position:fixed;inset:0;z-index:9999;background:#0a0520;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;font-size:18px;}
@@ -27,24 +24,26 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
 #game-view.active{display:block;}
 .bg-layer{position:fixed;inset:0;z-index:0;background-size:cover;background-position:center;}
 #world{position:absolute;top:0;left:0;width:100%;height:100%;z-index:3;transition:transform .12s ease-out;}
-.step{position:absolute;image-rendering:pixelated;background:#8B5E3C;border-top:3px solid #A97C50;}
+.step{position:absolute;background:#8B5E3C;border-top:3px solid #A97C50;}
 #player{position:fixed;z-index:5;image-rendering:pixelated;pointer-events:none;}
-#hud{position:fixed;top:8px;left:8px;right:8px;z-index:50;display:none;color:#fff;}
-#hud.active{display:flex;justify-content:space-between;}
-#progressWrap{width:100%;height:10px;background:rgba(255,255,255,.15);border-radius:5px;margin-top:6px;}
-#progressFill{height:100%;width:0%;background:#ffd740;border-radius:5px;}
+#hud{position:fixed;top:8px;left:8px;right:8px;z-index:50;display:none;color:#fff;font-size:14px;}
+#hud.active{display:flex;justify-content:space-between;align-items:center;}
+#progressWrap{width:100px;height:10px;background:rgba(255,255,255,.15);border-radius:5px;}
+#progressFill{height:100%;width:0%;background:#ffd740;border-radius:5px;transition:width .3s;}
 #buttons{position:fixed;bottom:0;left:0;right:0;height:130px;z-index:60;display:none;}
 #buttons.active{display:flex;}
 .btn{flex:1;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#fff;cursor:pointer;}
 .btn-turn{background:rgba(30,30,80,.85);}
 .btn-forward{background:rgba(80,30,30,.85);}
-.overlay{position:fixed;inset:0;z-index:300;display:none;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,0,0,.85);color:#fff;text-align:center;padding:20px;}
+.overlay{position:fixed;inset:0;z-index:300;display:none;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,0,0,0.85);color:#fff;text-align:center;padding:20px;}
 .overlay.active{display:flex;}
 .ov-input{padding:10px;border-radius:8px;width:200px;margin:10px 0;text-align:center;}
+#rankScreen{position:fixed;inset:0;z-index:400;display:none;flex-direction:column;background:rgba(0,0,0,0.92);color:#fff;padding:20px;}
+#rankScreen.active{display:flex;}
 .rank-table{width:100%;border-collapse:collapse;margin-top:10px;color:#fff;}
 .rank-table th{color:#ffd740;padding:8px;}
 .rank-table td{padding:8px;border-bottom:1px solid #333;text-align:center;}
-.my-rank-box{margin-top:15px;padding:10px;background:rgba(255,215,64,0.1);border:1px solid #ffd740;border-radius:10px;color:#fff;}
+.my-rank-box{margin-top:15px;padding:10px;background:rgba(255,215,64,0.1);border:1px solid #ffd740;border-radius:10px;}
 </style>
 </head>
 <body>
@@ -65,7 +64,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
     <img id="player" src="">
     <div id="hud">
         <span id="hudFloor">🏢 0층</span><span id="hudTime">⏱ 0.0s</span>
-        <div id="progressWrap" style="width:100px;"><div id="progressFill"></div></div>
+        <div id="progressWrap"><div id="progressFill"></div></div>
     </div>
     <div id="buttons">
         <div class="btn btn-turn" onclick="handleInput('turn')">↩️ 방향전환</div>
@@ -75,15 +74,11 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
 
 <div class="overlay" id="clearOverlay"><div class="ov-title">🎉 클리어!</div><input class="ov-input" id="clearName" placeholder="이름 입력"><button class="title-btn" onclick="saveAndShow('story')">기록 등록</button></div>
 <div class="overlay" id="overOverlay"><div class="ov-title">😇 다시 도전!</div><input class="ov-input" id="overName" placeholder="이름 입력"><button class="title-btn" onclick="saveAndShow(gameMode)">기록 등록</button></div>
-<div id="rankScreen" style="display:none; position:fixed; inset:0; z-index:400; background:rgba(0,0,0,0.92); flex-direction:column; padding:20px; overflow-y:auto;">
-    <h2 style="color:#ffd740; text-align:center;">🏆 실시간 순위표</h2>
-    <div id="rankBody"></div>
-    <button class="title-btn" onclick="location.reload()" style="background:#555; margin-top:15px;">닫기</button>
-</div>
+<div id="rankScreen"><h2>🏆 실시간 순위표</h2><div id="rankBody" style="flex:1; overflow-y:auto;"></div><button class="title-btn" onclick="location.reload()" style="background:#555; margin-top:15px;">닫기</button></div>
 
 <script>
 /* ================================================================
-   1. Firebase 및 사운드 시스템 (강력한 복구 버전)
+   1. Firebase 및 오리지널 사운드 복구 (Notes & Timing)
    ================================================================ */
 const firebaseConfig = {
     apiKey: "AIzaSyBNXIu32GPGJjfPlkrZ_WFLsZViMEWJvY4",
@@ -97,43 +92,39 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-// 사운드 관련 변수
 let audioCtx = null;
 let bgmInterval = null;
 
-// 사운드 시스템 초기화 (클릭 시 실행)
 function initAudio() {
-    if (!audioCtx) {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    }
-    if (audioCtx.state === 'suspended') {
-        audioCtx.resume();
-    }
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
 }
 
 function playTone(freq, dur, type, vol) {
     if (!audioCtx) return;
-    const o = audioCtx.createOscillator(); 
-    const g = audioCtx.createGain();
-    o.type = type || 'square'; 
-    o.frequency.value = freq;
-    g.gain.value = vol || 0.05; 
-    g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + dur);
-    o.connect(g); 
-    g.connect(audioCtx.destination);
-    o.start(); 
-    o.stop(audioCtx.currentTime + dur);
+    const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
+    o.type = type || 'square'; o.frequency.value = freq;
+    g.gain.value = vol || 0.05; g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + dur);
+    o.connect(g); g.connect(audioCtx.destination);
+    o.start(); o.stop(audioCtx.currentTime + dur);
 }
 
-const sfxJump = () => playTone(520, 0.1, 'square', 0.07);
-const sfxTurn = () => playTone(440, 0.08, 'triangle', 0.06);
-const sfxFail = () => playTone(200, 0.3, 'sawtooth', 0.1);
+// 오리지널 효과음 복구
+const sfxJump = () => { playTone(520, 0.1, 'square', 0.07); setTimeout(()=>playTone(680, 0.08, 'square', 0.05), 50); };
+const sfxTurn = () => { playTone(440, 0.08, 'triangle', 0.06); setTimeout(()=>playTone(580, 0.1, 'triangle', 0.05), 40); };
+const sfxFail = () => { playTone(200, 0.3, 'sawtooth', 0.1); setTimeout(()=>playTone(150, 0.4, 'sawtooth', 0.08), 150); };
 const sfxClear = () => [523, 659, 784, 1047].forEach((f, i) => setTimeout(() => playTone(f, 0.3, 'square', 0.08), i * 120));
 
+// 오리지널 배경음악 멜로디 복구
 function startBGM() {
     if (bgmInterval) clearInterval(bgmInterval);
+    const notes = [262, 330, 392, 523, 392, 330, 262, 330, 392, 523, 659, 523, 392, 330];
+    let i = 0;
     bgmInterval = setInterval(() => { 
-        if (gameActive && audioCtx) playTone(262, 0.25, 'triangle', 0.02); 
+        if (gameActive && audioCtx) {
+            playTone(notes[i % notes.length], 0.2, 'triangle', 0.03);
+            i++;
+        }
     }, 500);
 }
 
@@ -153,25 +144,12 @@ function buildCharSelect() {
     Object.entries(charDefs).forEach(([k, v]) => {
         const b = document.createElement('button'); b.className = 'char-btn' + (k===selectedChar?' selected':'');
         b.innerHTML = `<img src="${v.idle}"><span>${v.name}</span>`;
-        b.onclick = () => { 
-            initAudio(); // 캐릭터 선택할 때 오디오 깨우기
-            selectedChar=k; 
-            document.querySelectorAll('.char-btn').forEach(x=>x.classList.remove('selected')); 
-            b.classList.add('selected'); 
-        };
+        b.onclick = () => { initAudio(); selectedChar=k; document.querySelectorAll('.char-btn').forEach(x=>x.classList.remove('selected')); b.classList.add('selected'); };
         area.appendChild(b);
     });
 }
 
-function selectMode(m) { 
-    initAudio(); // 게임 시작 버튼 누를 때 오디오 깨우기
-    gameMode=m; 
-    document.getElementById('titleScreen').classList.add('hidden'); 
-    document.getElementById('game-view').classList.add('active'); 
-    document.getElementById('hud').classList.add('active'); 
-    document.getElementById('buttons').classList.add('active'); 
-    initGameState(); 
-}
+function selectMode(m) { initAudio(); gameMode=m; document.getElementById('titleScreen').classList.add('hidden'); document.getElementById('game-view').classList.add('active'); document.getElementById('hud').classList.add('active'); document.getElementById('buttons').classList.add('active'); initGameState(); }
 
 function initGameState() {
     gameActive=true; score=0; moveDir=1; playerDir=1; elapsed=0; steps=[]; 
@@ -180,8 +158,7 @@ function initGameState() {
     for(let i=0; i<160; i++) addNewStep();
     const p = document.getElementById('player'); p.src = charDefs[selectedChar].idle;
     p.style.width='120px'; p.style.height='150px'; p.style.left=(window.innerWidth/2-60)+'px'; p.style.top=(window.innerHeight-170-150+20)+'px';
-    updateCamera(); 
-    startBGM();
+    updateCamera(); startBGM();
     if(timerInterval) clearInterval(timerInterval);
     timerInterval = setInterval(() => { if(gameActive) { elapsed += 0.1; document.getElementById('hudTime').textContent='⏱ '+elapsed.toFixed(1)+'s'; } }, 100);
 }
@@ -192,25 +169,18 @@ function updateCamera() { const cur=steps[score]; document.getElementById('world
 
 function handleInput(action) {
     if(!gameActive) return;
-    initAudio(); // 터치 시에도 오디오 상태 확인
+    initAudio();
     const next = steps[score+1];
     let inputDir = moveDir; 
-    if(action==='turn') { moveDir *= -1; playerDir = moveDir; inputDir = moveDir; sfxTurn(); } 
-    else { sfxJump(); }
-
+    if(action==='turn') { moveDir *= -1; playerDir = moveDir; inputDir = moveDir; sfxTurn(); } else { sfxJump(); }
     if(inputDir === next.dir) {
-        score++; 
-        document.getElementById('player').style.transform=`scaleX(${playerDir})`; 
-        document.getElementById('player').src=charDefs[selectedChar].step;
-        updateCamera(); 
-        if(score===150 && gameMode==='story') gameClear();
+        score++; document.getElementById('player').style.transform=`scaleX(${playerDir})`; document.getElementById('player').src=charDefs[selectedChar].step;
+        updateCamera(); if(score===150 && gameMode==='story') gameClear();
         setTimeout(() => { if(gameActive) document.getElementById('player').src=charDefs[selectedChar].idle; }, 80);
     } else { gameOver(); }
 }
 
-/* ================================================================
-   3. 온라인 저장 및 랭킹
-   ================================================================ */
+/* 온라인 저장 */
 function saveAndShow(mode) {
     const name = document.getElementById(mode==='story'?'clearName':'overName').value.trim() || '무명성도';
     const entry = { name, floor:score, time:parseFloat(elapsed.toFixed(1)), timestamp:Date.now() };
@@ -234,43 +204,18 @@ function renderRank(mode) {
         if(lastId) {
             const myRank = list.findIndex(x=>x.id===lastId)+1;
             const myData = list.find(x=>x.id===lastId);
-            if(myData) html += `<div class="my-rank-box">방금 나의 기록: <strong>${myRank}위</strong> (${myData.floor}층)</div>`;
+            if(myData) html += `<div class="my-rank-box">나의 방금 기록: <strong>${myRank}위</strong> (${myData.floor}층)</div>`;
         }
         body.innerHTML = html;
     });
 }
 
-function showRanking(mode) { 
-    document.getElementById('rankScreen').style.display='flex'; 
-    renderRank(mode||'story'); 
-}
+function showRanking(mode) { document.getElementById('rankScreen').classList.add('active'); renderRank(mode||'story'); }
+function gameOver() { gameActive=false; sfxFail(); if(bgmInterval) clearInterval(bgmInterval); document.getElementById('player').src=charDefs[selectedChar].fall; clearInterval(timerInterval); document.getElementById('overOverlay').classList.add('active'); }
+function gameClear() { gameActive=false; sfxClear(); if(bgmInterval) clearInterval(bgmInterval); clearInterval(timerInterval); document.getElementById('clearOverlay').classList.add('active'); }
 
-function gameOver() { 
-    gameActive=false; 
-    sfxFail(); 
-    if(bgmInterval) clearInterval(bgmInterval); 
-    document.getElementById('player').src=charDefs[selectedChar].fall; 
-    clearInterval(timerInterval); 
-    document.getElementById('overOverlay').classList.add('active'); 
-}
-
-function gameClear() { 
-    gameActive=false; 
-    sfxClear(); 
-    if(bgmInterval) clearInterval(bgmInterval); 
-    clearInterval(timerInterval); 
-    document.getElementById('clearOverlay').classList.add('active'); 
-}
-
-// 초기화
-window.onload = () => {
-    buildCharSelect();
-    document.getElementById('loadScreen').style.display='none';
-};
-
-// 화면 아무 곳이나 누르면 오디오 초기화 시도
-document.addEventListener('mousedown', initAudio, { once: false });
-document.addEventListener('touchstart', initAudio, { once: false });
+window.onload = buildCharSelect;
+document.getElementById('loadScreen').style.display='none';
 </script>
 </body>
 </html>
